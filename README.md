@@ -15,7 +15,7 @@ This is a dependency-free static app suitable for Cloudflare Pages. Connect this
 1. Create a **dedicated HopeAid Supabase project** (do not use PluPrep, PluBuy or PluTalk's databases).
 2. Run `supabase/schema.sql` in its SQL Editor.
 3. Disable public sign-ups in Supabase Authentication settings, create approved staff accounts, then add staff records in `public.staff_profiles`. An authorised database administrator must explicitly assign staff, manager, admin or super_admin roles. Never derive roles from editable user metadata.
-4. Edit `config.js` to set the project's URL and **publishable** key (never a secret or service-role key).
+4. `config.js` now contains the HopeAid project URL and **publishable** key (never use a secret or service-role key).
 5. Test staff vs. manager access, attendance, task updates, reports, and logout on the deployed site before inviting real staff.
 
 Until configured, use **Explore sample dashboard** for a local fictional preview. Demo changes are never saved or sent to a backend.
@@ -28,6 +28,8 @@ The HopeAid site's palette informed this design: deep blue and green. This is no
 
 - Approved email: `moses@hopeaid.ngo`
 - Role: `super_admin` (highest portal role; inherits all management access)
-- **Not yet provisioned.** Set up a dedicated HopeAid Supabase project, apply `supabase/schema.sql`, then create/invite the Auth user in the Supabase Dashboard.
+- **Not yet provisioned.** The dedicated HopeAid Supabase project and six-table schema are installed. Create the Auth user in Supabase Authentication → Users and then run the provisioning script.
 - Run `supabase/provision_moses_super_admin.sql` from that project's SQL Editor to grant the role. This requires an existing matching Auth user. The SQL is not executed by GitHub deployment.
 - Use an invitation/unique temporary password and require prompt password reset. Do **not** use `password` as a default password or put credentials in source control.
+
+**Email delivery:** Supabase's default SMTP service only supports pre-authorized addresses. To send email invitations/password resets to staff, configure custom SMTP. Until then, securely create approved users with a strong temporary password in the Auth dashboard. The website supports invited-user password setup and password recovery when email delivery is configured.
