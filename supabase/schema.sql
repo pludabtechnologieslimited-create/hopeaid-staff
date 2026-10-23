@@ -12,7 +12,7 @@ create table public.staff_profiles(
  full_name text not null,
  job_title text,
  department text,
- role text not null default 'staff' check(role in ('staff','manager','admin')),
+ role text not null default 'staff' check(role in ('staff','manager','admin','super_admin')),
  is_active boolean not null default true,
  created_at timestamptz not null default now()
 );
@@ -80,7 +80,7 @@ create function private.is_manager() returns boolean
 language sql stable security definer set search_path=''
 as $$
  select exists(select 1 from public.staff_profiles p
- where p.id=(select auth.uid()) and p.is_active and p.role in ('manager','admin'));
+ where p.id=(select auth.uid()) and p.is_active and p.role in ('manager','admin','super_admin'));
 $$;
 revoke all on function private.is_active_staff() from public;
 revoke all on function private.is_manager() from public;
@@ -202,5 +202,7 @@ grant update on public.programmes,public.tasks to authenticated;
 -- BOOTSTRAP: Once the administrator has invited an Auth user,
 -- insert the corresponding staff record from SQL Editor (never the browser).
 -- Substitute values:
--- insert into public.staff_profiles(id,email,full_name,job_title,department,role)
--- values ('AUTH_USER_UUID','staff@hopeaid.ngo','Full Name','Manager','Programmes','manager');
+-- Create approved Auth users first (Authentication -> Users), then provision profile roles from SQL Editor.
+-- The initial super admin account is moses@hopeaid.ngo: use the separate
+-- supabase/provision_moses_super_admin.sql after its Auth user exists.
+-- Do NOT create a shared/default password, and do NOT grant super_admin from client metadata.
