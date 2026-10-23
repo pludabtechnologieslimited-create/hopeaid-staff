@@ -120,3 +120,25 @@
 
 /* Super Admin's one-time password handoff */
 .one-time-code{display:block;user-select:all;overflow-wrap:anywhere;padding:13px 14px;border:1px solid #c5e6d6;border-radius:9px;background:#edf8f2;color:#143f32;font:700 14px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace}
+
+/* Responsive authenticated staff navigation and always-reachable logout controls. */
+.sidebar{height:100vh;height:100dvh;max-height:100dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+.sidebar .navlist,.sidebar .workspace,.sidebar .brand,.sidebar-bottom{flex-shrink:0}
+.sidebar-bottom{padding-top:16px}
+.sidebar .navlink{min-height:43px;touch-action:manipulation}
+.logout-link{color:#a9463e!important;margin-top:8px;border-top:1px solid #edf1f4!important;border-radius:0!important;padding-top:15px!important}
+.logout-link:hover{color:#8f342e!important;background:#fff1ee!important}
+.logout-top{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;border:1px solid #dde7ee!important;border-radius:8px;background:#fff!important;padding:9px 11px!important;color:#476578;font-size:12px;font-weight:700}
+.logout-top:hover{background:#f4f8fb!important;color:#aa473c}
+@media(max-height:740px){.sidebar .brand{padding-bottom:10px}.sidebar .brand .mark{height:85px;width:118px}.sidebar .workspace{margin-bottom:12px}.sidebar .navlink{padding-top:10px;padding-bottom:10px}.sidebar .support-label{margin-top:13px}.sidebar-bottom{padding-top:8px}}
+@media(max-width:940px){
+ .sidebar{width:min(310px,calc(100vw - 42px));max-width:calc(100vw - 42px);transform:translate3d(-110%,0,0);z-index:110;box-shadow:9px 0 28px #0e28441f;will-change:transform}
+ .nav-open .sidebar{transform:translate3d(0,0,0)}
+ .nav-open .screen-shade{display:block;position:fixed;inset:0;background:#092d4699;z-index:105}
+ body.nav-open{overflow:hidden}
+ .sidebar-close{min-width:44px;min-height:44px;display:inline-grid;place-items:center}
+ .hamburger{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;border-radius:9px;touch-action:manipulation}
+ .hamburger:hover{background:#f0f5f8}
+}
+@media(max-width:710px){.topbar .top-actions{gap:8px}.logout-top{min-width:42px;min-height:42px;padding:8px!important;justify-content:center}.logout-top span{display:none}.topbar .crumb{display:flex;align-items:center;gap:5px;min-width:0;font-size:11px}.topbar .crumb b{max-width:106px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.topbar .topuser{padding:0!important}.topbar .top-actions{flex:none}}
+@media(prefers-reduced-motion:reduce){.sidebar{transition:none!important}}
