@@ -1,12 +1,13 @@
 -- Hope Aid 247 Foundation: provision the initial Super Admin.
 -- REQUIRED PREREQUISITES:
 -- 1. Apply supabase/schema.sql in a NEW, dedicated HopeAid Supabase project.
--- 2. Invite/create and verify the authorised email moses@hopeaid.ngo in Supabase Authentication -> Users.
+-- 2. Create moses@hopeaid.ngo in Supabase Authentication -> Users using Create new user,
+--    a strong unique password, and Auto Confirm User. No invite or email code is needed.
 -- 3. Run this script manually, in that same project's SQL Editor, with administrator access.
 --
 -- This script DOES NOT create an Auth user, DOES NOT set a password,
 -- and must not be exposed to the browser or executed in another app's database.
--- Use a unique password or secure invitation, not the shared word 'password'.
+-- Use a unique password created privately; never use a shared default password.
 
 do $provision$
 declare
@@ -18,7 +19,7 @@ begin
   limit 1;
 
   if v_user_id is null then
-    raise exception 'Auth user moses@hopeaid.ngo does not exist. Invite the user first.';
+    raise exception 'Auth user moses@hopeaid.ngo does not exist. Create the user with Auto Confirm first.';
   end if;
 
   insert into public.staff_profiles
