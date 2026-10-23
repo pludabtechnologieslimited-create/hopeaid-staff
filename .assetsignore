@@ -1,0 +1,27 @@
+# Only the HopeAid client files belong in the public Workers asset bundle.
+# The deployment directory is the repository root, so exclude build/source metadata.
+**/.git
+**/.git/**
+**/.wrangler
+**/.wrangler/**
+**/node_modules
+**/node_modules/**
+**/.env
+**/.env.*
+**/.DS_Store
+**/.gitignore
+**/.assetsignore
+**/wrangler.jsonc
+**/wrangler.toml
+**/README.md
+**/*.sql
+**/*.zip
+**/package.json
+**/package-lock.json
+**/pnpm-lock.yaml
+**/bun.lock
+**/bun.lockb
+**/yarn.lock
+**/supabase
+**/supabase/**
+**/_redirects
