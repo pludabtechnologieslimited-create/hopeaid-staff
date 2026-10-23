@@ -38,6 +38,12 @@ jobs:
           assert 'startDemo' not in js and 'state.demo' not in js
           assert 'const sample=' not in js
           assert 'Sign in securely' in html
+          assert 'setNavOpen' in js
+          assert 'aria-controls="staff-sidebar"' in html
+          assert 'data-action="logout"' in js
+          assert "signOut({scope:'local'})" in js
+          assert 'Responsive authenticated staff navigation' in Path("branding.css").read_text()
+          assert 'overflow-y:auto' in Path("branding.css").read_text()
           assert 'must_change_password boolean not null default true' in schema
           assert 'not p.must_change_password' in schema
           assert "state.authFlow='first-login'" in js
