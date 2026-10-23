@@ -2,7 +2,7 @@
 
 Internal staff dashboard for **Hope Aid 247 Foundation**.
 
-Features: responsive dashboard, assigned tasks, programme tracking, reports, check-in/out, announcements, manager staff directory, role-based access, and an explicit sample-data preview.
+Features: responsive dashboard, assigned tasks, programme tracking, reports, check-in/out, announcements, manager staff directory, role-based access, and approved-staff-only sign-in.
 
 ## Deployment
 
@@ -18,7 +18,7 @@ This is a dependency-free static app suitable for Cloudflare Pages. Connect this
 4. `config.js` now contains the HopeAid project URL and **publishable** key (never use a secret or service-role key).
 5. Test staff vs. manager access, attendance, task updates, reports, and logout on the deployed site before inviting real staff.
 
-Until configured, use **Explore sample dashboard** for a local fictional preview. Demo changes are never saved or sent to a backend.
+The staff portal requires an approved Supabase authentication account. Public demo access and fictional sample records are disabled.
 
 **Security:** data access is controlled by the SQL RLS policies, not just hidden buttons. General activity reports must not include personally identifying beneficiary information or safeguarding/GBV case details. This portal does not replace a dedicated confidential protection reporting channel. For production, add auditing, backups, MFA policy, and operational access reviews.
 
