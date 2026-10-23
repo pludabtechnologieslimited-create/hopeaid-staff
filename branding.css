@@ -1,0 +1,104 @@
+/* Hope Aid 247 Foundation staff branding.
+   Reuse the official logo served by the foundation's primary site. */
+:root {
+  --hopeaid-logo: url("https://hopeaid.ngo/Logo.png");
+}
+
+/* Replace the temporary sparkle mark with the official brand artwork. */
+.brand .mark,
+.startup .mark,
+.locked .mark,
+.workspace .symbol {
+  background-image: var(--hopeaid-logo);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-color: #fff;
+  color: transparent;
+  font-size: 0;
+}
+
+/* The full foundation name is included in the logo, so avoid duplicate text. */
+.sidebar .brand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 0 9px 23px;
+}
+.sidebar .brand .mark {
+  width: 154px;
+  height: 116px;
+  border-radius: 0;
+}
+.sidebar .brand b,
+.sign-art .brand b {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.sidebar .brand small {
+  color: #537189;
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  margin-left: 5px;
+}
+.sidebar .brand .sidebar-close {
+  position: absolute;
+  top: 0;
+  right: 3px;
+}
+.workspace .symbol {
+  width: 37px;
+  height: 37px;
+  flex: none;
+  border-radius: 7px;
+}
+.sign-art .brand {
+  position: relative;
+  gap: 18px;
+  align-items: center;
+  padding: 0 0 28px;
+}
+.sign-art .brand .mark {
+  width: 130px;
+  height: 130px;
+  flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 16px;
+  background-color: #fff;
+  box-shadow: 0 10px 32px rgba(0, 30, 48, 0.16);
+}
+.sign-art .brand small {
+  color: #e6f6fb;
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  line-height: 1.6;
+}
+.startup .mark,
+.locked .mark {
+  width: 105px;
+  height: 105px;
+  border-radius: 12px;
+}
+
+/* On narrow screens the original artwork panel is hidden; retain the logo. */
+@media (max-width: 710px) {
+  .signin .sign-panel::before {
+    content: "";
+    display: block;
+    justify-self: center;
+    width: 108px;
+    height: 108px;
+    margin-bottom: 20px;
+    background: #fff var(--hopeaid-logo) center / contain no-repeat;
+  }
+  .sign-panel {
+    padding-top: 36px;
+    padding-bottom: 36px;
+  }
+}
