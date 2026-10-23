@@ -5,31 +5,6 @@ let supabase=null,busy=false;
 const state={demo:false,user:null,profile:null,page:'overview',data:emptyData(),modal:null,filter:'all',search:'',toast:'',error:'',authFlow:'login',notice:'',createdStaffAccess:null};
 const entryAuthType=(()=>{try{return new URLSearchParams(window.location.hash.slice(1)).get('type')||new URLSearchParams(window.location.search).get('type')||''}catch{return ''}})();
 function emptyData(){return{team:[],tasks:[],programmes:[],reports:[],attendance:[],announcements:[]}}
-const sample=()=>({
- team:[
- {id:'demo1',full_name:'Amina Yusuf',email:'amina@example.org',department:'Programmes',job_title:'Programme Manager',role:'manager',is_active:true},
- {id:'demo2',full_name:'David Ibrahim',email:'david@example.org',department:'Health & Nutrition',job_title:'Field Officer',role:'staff',is_active:true},
- {id:'demo3',full_name:'Zainab Musa',email:'zainab@example.org',department:'Monitoring & Evaluation',job_title:'M&E Officer',role:'staff',is_active:true},
- {id:'demo4',full_name:'Grace Samuel',email:'grace@example.org',department:'Community Engagement',job_title:'Mobiliser',role:'staff',is_active:true}
- ],
- programmes:[
- {id:'p1',name:'Community Health & Nutrition',description:'Strengthening preventive healthcare, nutrition education and community wellbeing.',sector:'Health & Nutrition',location:'Maiduguri, Borno',start_date:'2026-09-01',status:'active'},
- {id:'p2',name:'Learning for Resilience',description:'Building access to skills, inclusive education and opportunities for local communities.',sector:'Education',location:'Borno State',start_date:'2026-10-01',status:'active'},
- {id:'p3',name:'Community Protection Outreach',description:'Awareness, dignity and safe referral pathways for at-risk communities.',sector:'Protection',location:'Maiduguri, Borno',start_date:'2026-11-01',status:'planning'}
- ],
- tasks:[
- {id:'t1',title:'Prepare community outreach report',description:'Summarise field activities and planned follow-up actions.',assigned_to:'demo1',priority:'high',status:'in_progress',due_date:'2026-10-26',programme_id:'p1'},
- {id:'t2',title:'Review nutrition activity plan',description:'Confirm the logistics and planned responsibilities.',assigned_to:'demo1',priority:'medium',status:'todo',due_date:'2026-10-28',programme_id:'p1'},
- {id:'t3',title:'Compile attendance sheets',description:'Prepare the monthly attendance totals.',assigned_to:'demo3',priority:'low',status:'done',due_date:'2026-10-21',programme_id:'p2'},
- {id:'t4',title:'Coordinate volunteer briefing',description:'Prepare the session materials and invitees.',assigned_to:'demo4',priority:'medium',status:'todo',due_date:'2026-10-30',programme_id:'p2'}
- ],
- announcements:[
- {id:'a1',title:'Welcome to the workspace',body:'This is a fictional preview. Live HopeAid records appear only when secure authentication and the dedicated database are configured.',created_at:'2026-10-23T08:00:00Z'},
- {id:'a2',title:'Monthly reporting reminder',body:'Share activity highlights, blockers and next steps with your programme supervisor.',created_at:'2026-10-20T09:30:00Z'}
- ],
- reports:[{id:'r1',title:'October outreach update',summary:'Planned community activities reviewed and next actions agreed.',challenges:'Field transport requires confirmation.',next_steps:'Confirm logistics and implementation dates.',author_id:'demo1',programme_id:'p1',created_at:'2026-10-18T11:00:00Z'}],
- attendance:[]
-});
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function dateToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Lagos',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
 function fmt(v,options){if(!v)return 'Not set';const d=new Date(String(v).length===10?v+'T12:00:00':v);return isNaN(+d)?'—':new Intl.DateTimeFormat('en-NG',{timeZone:'Africa/Lagos',...(options||{day:'numeric',month:'short',year:'numeric'})}).format(d)}
@@ -58,7 +33,7 @@ function renderSetPassword(){
 function renderLogin(){
  if(state.authFlow==='reset'){renderResetPassword();return}
  if(state.authFlow==='set-password'){renderSetPassword();return}
- app.innerHTML='<div class="signin"><aside class="sign-art"><div class="brand"><span class="mark">✦</span><div><b>hopeaid<span>247</span></b><small>STAFF WORKSPACE</small></div></div><section class="signmessage"><span class="eyebrow">✦ OUR PEOPLE, OUR IMPACT</span><h1>Good work starts<br>with <em>people.</em></h1><p>One organised space to collaborate, stay accountable and strengthen every community we serve.</p></section><small>Empowering Communities. Restoring Hope.</small></aside><main class="sign-panel"><div class="sign-card"><span class="eyebrow">STAFF WORKSPACE</span><h2>Welcome back<span style="color:#16995f">.</span></h2><p>Sign in with your approved HopeAid staff account.</p><form id="login-form"><label for="email">Work email address</label><input id="email" name="email" type="email" autocomplete="username" placeholder="you@hopeaid.ngo" required ><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required >'+alertBox()+'<button type="submit" class="button" '+(busy?'disabled':'')+'>Sign in securely →</button></form><button type="button" class="forgot-link" data-action="forgot-password">Forgot your password?</button>'+(!ready?'<div class="setup-alert" role="status">🔒 Login activation pending: Staff authentication is not yet connected. You can type into these fields, but the account cannot sign in until the database is activated. Do not enter a real or reused password yet.</div>':'')+'<div class="division">OR EXPLORE THE DESIGN</div>'+button('◫ &nbsp; Explore sample dashboard','demo','secondary')+'<p class="disclaimer">Sample mode uses fictional records only. No staff data is saved or transmitted.</p></div></main></div>';
+ app.innerHTML='<div class="signin"><aside class="sign-art"><div class="brand"><span class="mark">✦</span><div><b>hopeaid<span>247</span></b><small>STAFF WORKSPACE</small></div></div><section class="signmessage"><span class="eyebrow">✦ OUR PEOPLE, OUR IMPACT</span><h1>Good work starts<br>with <em>people.</em></h1><p>One organised space to collaborate, stay accountable and strengthen every community we serve.</p></section><small>Empowering Communities. Restoring Hope.</small></aside><main class="sign-panel"><div class="sign-card"><span class="eyebrow">STAFF WORKSPACE</span><h2>Welcome back<span style="color:#16995f">.</span></h2><p>Sign in with your approved HopeAid staff account.</p><form id="login-form"><label for="email">Work email address</label><input id="email" name="email" type="email" autocomplete="username" placeholder="you@hopeaid.ngo" required ><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required >'+alertBox()+'<button type="submit" class="button" '+(busy?'disabled':'')+'>Sign in securely →</button></form><button type="button" class="forgot-link" data-action="forgot-password">Forgot your password?</button>'+(!ready?'<div class="setup-alert" role="status">🔒 Login activation pending: Staff authentication is not yet connected. You can type into these fields, but the account cannot sign in until the database is activated. Do not enter a real or reused password yet.</div>':'')+'</div></main></div>';
 }
 function renderLocked(){app.innerHTML='<div class="locked"><div class="mark">✦</div><h1>Staff access pending</h1><p>'+esc(state.error||'Your account is signed in but does not have an active HopeAid staff profile. Contact your administrator for approval.')+'</p>'+button('Sign out','logout','secondary')+'</div>'}
 function overview(){
@@ -136,8 +111,6 @@ async function loadData(uid){
  for(const [i,name] of ['tasks','programmes','reports','attendance','announcements','team'].entries())state.data[name]=results[i].data||[];
  state.error='';render();
 }
-function startDemo(){state.demo=true;state.data=sample();state.profile=state.data.team[0];state.page='overview';state.filter='all';state.search='';state.error='';render();flash('Sample preview only — changes are not saved.')}
-
 function generateTemporaryPassword(){
  const rng=window.crypto;
  if(!rng?.getRandomValues)throw new Error('A secure browser is required for account creation.');
@@ -232,7 +205,6 @@ document.addEventListener('click',async e=>{
  const action=a.dataset.action;
  if(action==='toggle-nav'){document.body.classList.toggle('nav-open');return}
  if(action==='close-nav'){document.body.classList.remove('nav-open');return}
- if(action==='demo'){startDemo();return}
  if(action==='forgot-password'){state.authFlow='reset';state.notice='';state.error='';renderResetPassword();return}
  if(action==='back-login'){state.authFlow='login';state.notice='';state.error='';renderLogin();return}
  if(action==='copy-initial-password'&&state.createdStaffAccess){
