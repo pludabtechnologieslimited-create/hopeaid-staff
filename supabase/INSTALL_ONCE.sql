@@ -25,6 +25,7 @@ create table public.staff_profiles(
  department text,
  role text not null default 'staff' check(role in ('staff','manager','admin','super_admin')),
  is_active boolean not null default true,
+ must_change_password boolean not null default true,
  created_at timestamptz not null default now()
 );
 create table public.programmes(
@@ -85,13 +86,13 @@ create function private.is_active_staff() returns boolean
 language sql stable security definer set search_path=''
 as $$
  select exists(select 1 from public.staff_profiles p
- where p.id=(select auth.uid()) and p.is_active);
+ where p.id=(select auth.uid()) and p.is_active and not p.must_change_password);
 $$;
 create function private.is_manager() returns boolean
 language sql stable security definer set search_path=''
 as $$
  select exists(select 1 from public.staff_profiles p
- where p.id=(select auth.uid()) and p.is_active and p.role in ('manager','admin','super_admin'));
+ where p.id=(select auth.uid()) and p.is_active and not p.must_change_password and p.role in ('manager','admin','super_admin'));
 $$;
 revoke all on function private.is_active_staff() from public;
 revoke all on function private.is_manager() from public;
@@ -106,8 +107,7 @@ alter table public.announcements enable row level security;
 
 create policy "profile: own or manager" on public.staff_profiles
 for select to authenticated using(
- (select private.is_active_staff()) and
- (id=(select auth.uid()) or (select private.is_manager()))
+ (id=(select auth.uid()) and is_active) or (select private.is_manager())
 );
 -- No profile inserts/updates/deletes are allowed from public browser clients.
 
@@ -212,7 +212,7 @@ grant select on public.staff_profiles,public.programmes,public.tasks,public.atte
 grant insert on public.programmes,public.tasks,public.reports,public.announcements to authenticated;
 grant update on public.programmes,public.tasks to authenticated;
 
--- BOOTSTRAP: Once the administrator has invited an Auth user,
+-- BOOTSTRAP: Once the administrator has securely created an Auth user,
 -- insert the corresponding staff record from SQL Editor (never the browser).
 -- Substitute values:
 -- Create approved Auth users first (Authentication -> Users), then provision profile roles from SQL Editor.
