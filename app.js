@@ -2,7 +2,7 @@
 const app=document.getElementById('app');
 const C=window.HOPEAID_CONFIG||{},ready=Boolean(C.supabaseUrl&&C.supabasePublishableKey);
 let supabase=null,busy=false;
-const state={demo:false,user:null,profile:null,page:'overview',data:emptyData(),modal:null,filter:'all',search:'',toast:'',error:'',authFlow:'login',notice:'',createdStaffAccess:null};
+const state={user:null,profile:null,page:'overview',data:emptyData(),modal:null,filter:'all',search:'',toast:'',error:'',authFlow:'login',notice:'',createdStaffAccess:null};
 const entryAuthType=(()=>{try{return new URLSearchParams(window.location.hash.slice(1)).get('type')||new URLSearchParams(window.location.search).get('type')||''}catch{return ''}})();
 function emptyData(){return{team:[],tasks:[],programmes:[],reports:[],attendance:[],announcements:[]}}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -60,8 +60,8 @@ function reports(){
  return title('DOCUMENTATION','Activity reports','Capture field updates, challenges and next steps.',button('＋ Submit report','new-report'))+'<div class="privacy">▣ Do not enter personal beneficiary details or confidential protection/safeguarding cases in general activity reports.</div><section class="panel pad"><h3>Submitted reports</h3><p class="muted">Reports accessible to your account</p>'+(records.length?records.map(r=>'<div class="report"><span class="reporticon">▤</span><div><strong>'+esc(r.title)+'</strong><p>'+esc(r.summary)+'</p><small>'+esc(pname(r.programme_id))+' • '+esc(fmt(r.created_at))+(manager()?' • '+esc(staffname(r.author_id)):'')+'</small>'+((r.challenges||r.next_steps)?'<details><summary>Challenges and next steps</summary><p><b>Challenges:</b> '+esc(r.challenges||'—')+'</p><p><b>Next steps:</b> '+esc(r.next_steps||'—')+'</p></details>':'')+'</div></div>').join(''):empty('No reports yet','Use Submit report to record activity progress.'))+'</section>';
 }
 function announcements(){return title('STAY CONNECTED','Announcements','Important updates from foundation leadership.',manager()?button('＋ Post announcement','new-announcement'):'')+(state.data.announcements.length?state.data.announcements.map(a=>'<article class="announcement"><span class="icon">◉</span><div class="body"><header><h3>'+esc(a.title)+'</h3><small>'+esc(fmt(a.created_at))+'</small></header><p>'+esc(a.body)+'</p><footer>HOPEAID STAFF NOTICE</footer></div></article>').join(''):empty('No announcements','Management notices appear here.'))}
-function team(){return title('OUR PEOPLE','Staff directory','Staff information visible to authorised managers.',state.profile?.role==='super_admin'&&!state.demo?button('＋ Create staff account','new-staff'):'')+'<section class="panel pad"><h3>'+state.data.team.length+' team members</h3><div class="staffgrid" style="margin-top:20px">'+state.data.team.map(p=>'<article class="staffcard">'+avatar(p.full_name,'big')+'<h3>'+esc(p.full_name)+'</h3><p>'+esc(p.job_title||'Staff member')+'</p><span class="department">'+esc(p.department||'General')+'</span><footer><span class="'+(p.is_active?'active':'')+'">● '+(p.is_active?'Active':'Inactive')+'</span><span>'+esc(roleLabel(p.role))+'</span></footer></article>').join('')+'</div></section>'}
-function settings(){const p=state.profile;return title('ACCOUNT','My profile','Your staff identity and access details.')+'<div class="settings"><section class="panel pad"><div class="profilehead">'+avatar(p.full_name,'big')+'<div><h2>'+esc(p.full_name)+'</h2><p>'+esc(p.job_title||p.department||'Staff member')+'</p></div></div>'+[['Email',state.demo?'Fictional sample account':p.email],['Department',p.department||'Not assigned'],['Account role',roleLabel(p.role)],['Status',p.is_active?'Active':'Inactive']].map(x=>'<div class="profield"><span>'+x[0]+'</span><b>'+esc(x[1])+'</b></div>').join('')+'</section><section class="panel pad"><h3>Account security</h3><p class="muted">Only authorised HopeAid staff can access protected records. Contact your administrator for account changes.</p><div class="security"><b>🔒 Access protection</b>Roles and data access are enforced by server-side database permissions.</div>'+button(state.demo?'Leave sample dashboard':'Sign out','logout','secondary')+'</section></div>'}
+function team(){return title('OUR PEOPLE','Staff directory','Staff information visible to authorised managers.',state.profile?.role==='super_admin'?button('＋ Create staff account','new-staff'):'')+'<section class="panel pad"><h3>'+state.data.team.length+' team members</h3><div class="staffgrid" style="margin-top:20px">'+state.data.team.map(p=>'<article class="staffcard">'+avatar(p.full_name,'big')+'<h3>'+esc(p.full_name)+'</h3><p>'+esc(p.job_title||'Staff member')+'</p><span class="department">'+esc(p.department||'General')+'</span><footer><span class="'+(p.is_active?'active':'')+'">● '+(p.is_active?'Active':'Inactive')+'</span><span>'+esc(roleLabel(p.role))+'</span></footer></article>').join('')+'</div></section>'}
+function settings(){const p=state.profile;return title('ACCOUNT','My profile','Your staff identity and access details.')+'<div class="settings"><section class="panel pad"><div class="profilehead">'+avatar(p.full_name,'big')+'<div><h2>'+esc(p.full_name)+'</h2><p>'+esc(p.job_title||p.department||'Staff member')+'</p></div></div>'+[['Email',p.email],['Department',p.department||'Not assigned'],['Account role',roleLabel(p.role)],['Status',p.is_active?'Active':'Inactive']].map(x=>'<div class="profield"><span>'+x[0]+'</span><b>'+esc(x[1])+'</b></div>').join('')+'</section><section class="panel pad"><h3>Account security</h3><p class="muted">Only authorised HopeAid staff can access protected records. Contact your administrator for account changes.</p><div class="security"><b>🔒 Access protection</b>Roles and data access are enforced by server-side database permissions.</div>'+button('Sign out','logout','secondary')+'</section></div>'}
 function field(label,name,required=false,type='text',placeholder=''){return '<label class="field"><span>'+esc(label)+'</span>'+(type==='textarea'?'<textarea name="'+name+'" rows="3" '+(required?'required':'')+' placeholder="'+esc(placeholder)+'"></textarea>':'<input name="'+name+'" type="'+type+'" '+(required?'required':'')+' placeholder="'+esc(placeholder)+'">')+'</label>'}
 function select(label,name,opts){return '<label class="field"><span>'+esc(label)+'</span><select name="'+name+'">'+opts.map(o=>'<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>').join('')+'</select></label>'}
 function modalMarkup(){
@@ -82,12 +82,12 @@ function modalMarkup(){
 }
 function render(){
  if(state.authFlow==='set-password'||state.authFlow==='first-login'){renderSetPassword();return}
- if(!state.demo&&!state.user){renderLogin();return}
+ if(!state.user){renderLogin();return}
  if(!state.profile){renderLocked();return}
  if(state.page==='team'&&!manager())state.page='overview';
  const pageContent={overview,tasks,programmes,attendance,reports,announcements,team,settings}[state.page]?.()||overview();
  const nav=navItems.slice(0,7).filter(x=>x[0]!=='team'||manager()).map(x=>'<button class="navlink '+(state.page===x[0]?'current':'')+'" data-page="'+x[0]+'"><span class="ico">'+x[1]+'</span>'+x[2]+(state.page===x[0]?'<span class="arrow">●</span>':'')+'</button>').join('');
- app.innerHTML='<div class="screen-shade" data-action="close-nav"></div><div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">✦</span><div><b>hopeaid<span>247</span></b><small>STAFF WORKSPACE</small></div><button class="sidebar-close" data-action="close-nav">×</button></div><div class="workspace"><span class="symbol">✦</span><div><b>Hope Aid Foundation</b><small>Internal workspace</small></div><span class="chev">⌄</span></div><div class="navlabel">WORKSPACE</div><nav class="navlist" aria-label="Staff navigation">'+nav+'</nav><div class="navlabel support-label">SUPPORT</div><nav class="navlist"><a class="navlink" href="https://hopeaid.ngo/safeguarding.html" target="_blank" rel="noopener noreferrer"><span class="ico">♧</span>Safeguarding policy ↗</a><button class="navlink '+(state.page==='settings'?'current':'')+'" data-page="settings"><span class="ico">⚙</span>My Profile</button></nav><div class="sidebar-bottom"><div class="support-card"><strong>✦ Making impact together</strong><p>Small actions. Lasting change.</p><a href="https://hopeaid.ngo" rel="noopener noreferrer" target="_blank">Visit foundation website ↗</a></div><div class="user-chip">'+avatar(state.profile.full_name)+'<div><b>'+esc(state.profile.full_name)+'</b><small>'+esc(state.profile.job_title||state.profile.department||'Staff member')+'</small></div></div></div></aside><div class="main"><header class="topbar"><div class="crumb"><button class="hamburger" data-action="toggle-nav" aria-label="Open menu">☰</button>Workspace &nbsp; › &nbsp; <b>'+esc(navItems.find(x=>x[0]===state.page)?.[2]||'Overview')+'</b></div><div class="top-actions">'+(state.demo?'<span class="preview-tag">● DEMO MODE</span>':'')+'<span class="date">◷ '+esc(fmt(dateToday()))+'</span><button class="topuser" data-page="settings">'+avatar(state.profile.full_name)+'<b>'+esc(fname())+'</b></button></div></header><main class="content"><div class="inner">'+alertBox()+pageContent+'<footer class="sitefoot"><span>© '+new Date().getFullYear()+' Hope Aid 247 Foundation</span><span>Built for the people behind the impact ✦</span></footer></div></main></div></div>'+modalMarkup();
+ app.innerHTML='<div class="screen-shade" data-action="close-nav"></div><div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">✦</span><div><b>hopeaid<span>247</span></b><small>STAFF WORKSPACE</small></div><button class="sidebar-close" data-action="close-nav">×</button></div><div class="workspace"><span class="symbol">✦</span><div><b>Hope Aid Foundation</b><small>Internal workspace</small></div><span class="chev">⌄</span></div><div class="navlabel">WORKSPACE</div><nav class="navlist" aria-label="Staff navigation">'+nav+'</nav><div class="navlabel support-label">SUPPORT</div><nav class="navlist"><a class="navlink" href="https://hopeaid.ngo/safeguarding.html" target="_blank" rel="noopener noreferrer"><span class="ico">♧</span>Safeguarding policy ↗</a><button class="navlink '+(state.page==='settings'?'current':'')+'" data-page="settings"><span class="ico">⚙</span>My Profile</button></nav><div class="sidebar-bottom"><div class="support-card"><strong>✦ Making impact together</strong><p>Small actions. Lasting change.</p><a href="https://hopeaid.ngo" rel="noopener noreferrer" target="_blank">Visit foundation website ↗</a></div><div class="user-chip">'+avatar(state.profile.full_name)+'<div><b>'+esc(state.profile.full_name)+'</b><small>'+esc(state.profile.job_title||state.profile.department||'Staff member')+'</small></div></div></div></aside><div class="main"><header class="topbar"><div class="crumb"><button class="hamburger" data-action="toggle-nav" aria-label="Open menu">☰</button>Workspace &nbsp; › &nbsp; <b>'+esc(navItems.find(x=>x[0]===state.page)?.[2]||'Overview')+'</b></div><div class="top-actions">'+'<span class="date">◷ '+esc(fmt(dateToday()))+'</span><button class="topuser" data-page="settings">'+avatar(state.profile.full_name)+'<b>'+esc(fname())+'</b></button></div></header><main class="content"><div class="inner">'+alertBox()+pageContent+'<footer class="sitefoot"><span>© '+new Date().getFullYear()+' Hope Aid 247 Foundation</span><span>Built for the people behind the impact ✦</span></footer></div></main></div></div>'+modalMarkup();
 }
 function flash(msg,error=false){state.toast=msg;document.querySelector('.toast')?.remove();const el=document.createElement('div');el.className='toast'+(error?' err':'');el.setAttribute('role','status');el.textContent=msg;const close=document.createElement('button');close.textContent='×';close.onclick=()=>el.remove();el.appendChild(close);document.body.appendChild(el)}
 function err(e){state.error=e?.message||String(e)||'Operation failed';render();flash(state.error,true)}
@@ -152,11 +152,11 @@ async function savePassword(form){
  flash('Your password was set successfully.');
 }
 async function login(form){if(!supabase){state.error='The secure login connection is still initializing. Please refresh if this persists.';renderLogin();return}busy=true;state.error='';renderLogin();try{const {data,error:e}=await supabase.auth.signInWithPassword({email:String(form.get('email')).trim(),password:String(form.get('password'))});if(e)throw e;state.user=data.user;await loadData(data.user.id)}catch(e){err(e)}finally{busy=false}}
-async function logout(){state.authFlow='login';state.notice='';state.createdStaffAccess=null;if(state.demo){state.demo=false;state.data=emptyData();state.profile=null;state.user=null;state.error='';state.page='overview';render();return}if(supabase){const {error:e}=await supabase.auth.signOut();if(e){err(e);return}}state.user=null;state.profile=null;state.data=emptyData();state.page='overview';state.error='';render()}
+async function logout(){state.authFlow='login';state.notice='';state.createdStaffAccess=null;if(supabase){const {error:e}=await supabase.auth.signOut();if(e){err(e);return}}state.user=null;state.profile=null;state.data=emptyData();state.page='overview';state.error='';render()}
 async function write(kind,form){
  const get=n=>String(form.get(n)||'').trim();
  if(kind==='staff'){
-  if(state.demo||state.profile?.role!=='super_admin'||state.profile.must_change_password||!supabase)throw new Error('Only an active Super Admin can create staff accounts.');
+  if(state.profile?.role!=='super_admin'||state.profile.must_change_password||!supabase)throw new Error('Only an active Super Admin can create staff accounts.');
   const tempPassword=generateTemporaryPassword();
   const {data,error:e}=await supabase.functions.invoke('create-staff',{body:{
    email:get('email'),password:tempPassword,full_name:get('full_name'),
@@ -185,18 +185,15 @@ async function write(kind,form){
  if(!table||!payloads[kind])return;
  if(['task','programme','announcement'].includes(kind)&&!manager())throw new Error('Manager access required');
  const payload=payloads[kind];
- if(state.demo){const row={...payload,id:'demo-'+Date.now(),created_at:new Date().toISOString(),...(kind==='report'?{author_id:state.profile.id}:{}),...(kind==='announcement'?{author_id:state.profile.id}:{})};state.data[table].unshift(row)}
- else{const {error:e}=await supabase.from(table).insert(payload);if(e)throw e;await loadData(state.user.id)}
- state.modal=null;render();flash(kind[0].toUpperCase()+kind.slice(1)+' saved'+(state.demo?' in sample mode':'')+'.');
+ const {error:e}=await supabase.from(table).insert(payload);if(e)throw e;await loadData(state.user.id);
+ state.modal=null;render();flash(kind[0].toUpperCase()+kind.slice(1)+' saved.');
 }
 async function taskStatus(id,value){
- if(state.demo){const t=state.data.tasks.find(x=>x.id===id);if(t)t.status=value}
- else{const {error:e}=await supabase.rpc('set_task_status',{p_task_id:id,p_status:value});if(e)throw e;await loadData(state.user.id)}
+ const {error:e}=await supabase.rpc('set_task_status',{p_task_id:id,p_status:value});if(e)throw e;await loadData(state.user.id);
  render();flash('Task status updated.');
 }
 async function clock(which){
- if(state.demo){const day=dateToday(),now=new Date().toISOString(),todayRow=state.data.attendance.find(a=>a.staff_id===state.profile.id&&a.work_date===day);if(which==='clock-in'){if(todayRow)throw new Error('Already checked in today');state.data.attendance.unshift({id:'d'+Date.now(),staff_id:state.profile.id,work_date:day,clock_in:now,clock_out:null})}else{if(!todayRow||todayRow.clock_out)throw new Error('No active shift');todayRow.clock_out=now}}
- else{const {error:e}=await supabase.rpc(which.replace('-','_'));if(e)throw e;await loadData(state.user.id)}
+ const {error:e}=await supabase.rpc(which.replace('-','_'));if(e)throw e;await loadData(state.user.id);
  render();flash(which==='clock-in'?'Checked in successfully.':'Checked out successfully.');
 }
 document.addEventListener('click',async e=>{
@@ -212,7 +209,7 @@ document.addEventListener('click',async e=>{
  }
  if(action==='close'){state.createdStaffAccess=null;state.modal=null;render();return}
  if(action==='logout'){await logout();return}
- if(action.startsWith('new-')){if(action==='new-staff'&&(state.demo||state.profile?.role!=='super_admin'||state.profile.must_change_password))return;if(['new-task','new-programme','new-announcement'].includes(action)&&!manager())return;state.modal=action.slice(4);state.error='';render();return}
+ if(action.startsWith('new-')){if(action==='new-staff'&&(state.profile?.role!=='super_admin'||state.profile.must_change_password))return;if(['new-task','new-programme','new-announcement'].includes(action)&&!manager())return;state.modal=action.slice(4);state.error='';render();return}
  if(action==='clock-in'||action==='clock-out'){if(busy)return;busy=true;try{await clock(action)}catch(e){err(e)}finally{busy=false}}
 });
 document.addEventListener('click',e=>{const f=e.target.closest('[data-filter]');if(!f)return;state.filter=f.dataset.filter;render()});
@@ -224,7 +221,7 @@ document.addEventListener('submit',async e=>{
  if(busy)return;busy=true;
  const form=new FormData(e.target);
  try{if(e.target.id==='login-form')await login(form);else if(e.target.id==='reset-form')await sendPasswordReset(form);else if(e.target.id==='password-setup-form')await savePassword(form);else await write(e.target.dataset.kind,form)}
- catch(ex){err(ex)}finally{busy=false;if(e.target.id==='login-form'&&!state.user&&!state.demo)renderLogin()}
+ catch(ex){err(ex)}finally{busy=false;if(e.target.id==='login-form'&&!state.user)renderLogin()}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal){state.modal=null;render()}});
 async function init(){
@@ -233,7 +230,7 @@ async function init(){
  if(!ready)return;
  let finished=false;
  const watchdog=window.setTimeout(()=>{
-   if(!finished&&!state.user&&!state.demo){
+   if(!finished&&!state.user){
      state.error='The secure login connection is taking longer than expected. Check your network and refresh this page.';
      renderLogin();
    }
