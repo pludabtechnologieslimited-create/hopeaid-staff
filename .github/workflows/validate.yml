@@ -11,24 +11,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate JavaScript
+      - name: Check JavaScript syntax
         run: |
           node --check app.js
           node --check config.js
-      - name: Validate static files
+      - name: Verify source parity and security controls
         run: |
           python3 - <<'PY'
+          import base64, hashlib, re
           from pathlib import Path
-          html = Path("index.html").read_text()
-          js = Path("app.js").read_text()
-          css = Path("styles.css").read_text()
-          schema = Path("supabase/schema.sql").read_text()
-          assert 'id="app"' in html
-          assert '/app.js' in html and '/styles.css' in html and '/config.js' in html
-          assert 'signInWithPassword' in js and 'staff_profiles' in js
-          assert 'data-action="demo"' not in js or 'startDemo()' in js
-          assert '@media' in css
+          html=Path('index.html').read_text()
+          js=Path('app.js').read_text()
+          headers=Path('_headers').read_text()
+          schema=Path('supabase/schema.sql').read_text()
+          config=Path('config.js').read_text()
+          inline=re.search(r'<script>([\s\S]*?)</script>',html)
+          assert inline, 'Inline app script missing'
+          assert inline.group(1)==js, 'index.html must mirror app.js exactly'
+          digest=base64.b64encode(hashlib.sha256(js.encode()).digest()).decode()
+          assert "'sha256-"+digest+"'" in headers, 'Missing/mismatched CSP script hash'
+          assert "unsafe-inline" not in headers
+          assert '/config.js' in html
+          assert 'sb_publishable_' in config
+          assert 'must_change_password boolean not null default true' in schema
+          assert 'not p.must_change_password' in schema
+          assert "state.authFlow='first-login'" in js
+          assert "complete-initial-password" in js
+          assert "create-staff" in js
+          assert "getRandomValues" in js
+          assert "temporary password" in js.lower()
           for table in ('staff_profiles','programmes','tasks','reports','attendance','announcements'):
-              assert 'alter table public.' + table + ' enable row level security' in schema
-          print("HopeAid portal structure and SQL RLS declarations checked")
+            assert 'alter table public.'+table+' enable row level security' in schema
+          print('PASS: JS parity, CSP integrity, RLS and first-login password rotation')
           PY
