@@ -2,7 +2,8 @@
 const app=document.getElementById('app');
 const C=window.HOPEAID_CONFIG||{},ready=Boolean(C.supabaseUrl&&C.supabasePublishableKey);
 let supabase=null,busy=false;
-const state={demo:false,user:null,profile:null,page:'overview',data:emptyData(),modal:null,filter:'all',search:'',toast:'',error:''};
+const state={demo:false,user:null,profile:null,page:'overview',data:emptyData(),modal:null,filter:'all',search:'',toast:'',error:'',authFlow:'login',notice:''};
+const entryAuthType=(()=>{try{return new URLSearchParams(window.location.hash.slice(1)).get('type')||new URLSearchParams(window.location.search).get('type')||''}catch{return ''}})();
 function emptyData(){return{team:[],tasks:[],programmes:[],reports:[],attendance:[],announcements:[]}}
 const sample=()=>({
  team:[
@@ -46,8 +47,17 @@ function pname(id){return state.data.programmes.find(p=>p.id===id)?.name||'Gener
 function staffname(id){return state.data.team.find(p=>p.id===id)?.full_name||'Staff member'}
 function alertBox(){return state.error?'<div class="errorbar" role="alert">'+esc(state.error)+'</div>':''}
 const navItems=[['overview','◫','Overview'],['tasks','☑','My Tasks'],['programmes','▣','Programmes'],['attendance','◷','Attendance'],['reports','▤','Reports'],['announcements','◉','Announcements'],['team','♙','Staff Directory'],['settings','⚙','My Profile']];
+
+function renderResetPassword(){
+ app.innerHTML='<main class="auth-setup"><section class="auth-box"><span class="auth-setup-logo" aria-hidden="true"></span><span class="eyebrow">HOPEAID STAFF ACCESS</span><h2>Reset your password</h2><p>Enter your approved staff email address to receive a password reset link.</p><form id="reset-form"><label for="reset-email">Work email address</label><input id="reset-email" name="email" type="email" autocomplete="email" placeholder="you@hopeaid.ngo" required>'+alertBox()+'<button class="button" type="submit" '+(busy?'disabled':'')+'>Send reset link</button></form>'+(state.notice?'<div class="setup-alert" role="status">'+esc(state.notice)+'</div>':'')+button('← Back to sign in','back-login','secondary')+'</section></main>';
+}
+function renderSetPassword(){
+ app.innerHTML='<main class="auth-setup"><section class="auth-box"><span class="auth-setup-logo" aria-hidden="true"></span><span class="eyebrow">HOPEAID STAFF ACCESS</span><h2>Choose a secure password</h2><p>To finish your invitation or password reset, set a unique password with at least 12 characters.</p><form id="password-setup-form"><label for="new-password">New password</label><input id="new-password" name="password" type="password" autocomplete="new-password" minlength="12" required><label for="confirm-password">Confirm new password</label><input id="confirm-password" name="confirm" type="password" autocomplete="new-password" minlength="12" required>'+alertBox()+'<button class="button" type="submit" '+(busy?'disabled':'')+'>Save password securely</button></form><p class="auth-note">Passwords are processed by Supabase Auth; the HopeAid website does not store your password.</p>'+button('Sign out','logout','secondary')+'</section></main>';
+}
 function renderLogin(){
- app.innerHTML='<div class="signin"><aside class="sign-art"><div class="brand"><span class="mark">✦</span><div><b>hopeaid<span>247</span></b><small>STAFF WORKSPACE</small></div></div><section class="signmessage"><span class="eyebrow">✦ OUR PEOPLE, OUR IMPACT</span><h1>Good work starts<br>with <em>people.</em></h1><p>One organised space to collaborate, stay accountable and strengthen every community we serve.</p></section><small>Empowering Communities. Restoring Hope.</small></aside><main class="sign-panel"><div class="sign-card"><span class="eyebrow">STAFF WORKSPACE</span><h2>Welcome back<span style="color:#16995f">.</span></h2><p>Sign in with your approved HopeAid staff account.</p><form id="login-form"><label for="email">Work email address</label><input id="email" name="email" type="email" autocomplete="username" placeholder="you@hopeaid.ngo" required ><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required >'+alertBox()+'<button type="submit" class="button" '+(busy?'disabled':'')+'>Sign in securely →</button></form>'+(!ready?'<div class="setup-alert" role="status">🔒 Login activation pending: Staff authentication is not yet connected. You can type into these fields, but the account cannot sign in until the database is activated. Do not enter a real or reused password yet.</div>':'')+'<div class="division">OR EXPLORE THE DESIGN</div>'+button('◫ &nbsp; Explore sample dashboard','demo','secondary')+'<p class="disclaimer">Sample mode uses fictional records only. No staff data is saved or transmitted.</p></div></main></div>';
+ if(state.authFlow==='reset'){renderResetPassword();return}
+ if(state.authFlow==='set-password'){renderSetPassword();return}
+ app.innerHTML='<div class="signin"><aside class="sign-art"><div class="brand"><span class="mark">✦</span><div><b>hopeaid<span>247</span></b><small>STAFF WORKSPACE</small></div></div><section class="signmessage"><span class="eyebrow">✦ OUR PEOPLE, OUR IMPACT</span><h1>Good work starts<br>with <em>people.</em></h1><p>One organised space to collaborate, stay accountable and strengthen every community we serve.</p></section><small>Empowering Communities. Restoring Hope.</small></aside><main class="sign-panel"><div class="sign-card"><span class="eyebrow">STAFF WORKSPACE</span><h2>Welcome back<span style="color:#16995f">.</span></h2><p>Sign in with your approved HopeAid staff account.</p><form id="login-form"><label for="email">Work email address</label><input id="email" name="email" type="email" autocomplete="username" placeholder="you@hopeaid.ngo" required ><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required >'+alertBox()+'<button type="submit" class="button" '+(busy?'disabled':'')+'>Sign in securely →</button></form><button type="button" class="forgot-link" data-action="forgot-password">Forgot your password?</button>'+(!ready?'<div class="setup-alert" role="status">🔒 Login activation pending: Staff authentication is not yet connected. You can type into these fields, but the account cannot sign in until the database is activated. Do not enter a real or reused password yet.</div>':'')+'<div class="division">OR EXPLORE THE DESIGN</div>'+button('◫ &nbsp; Explore sample dashboard','demo','secondary')+'<p class="disclaimer">Sample mode uses fictional records only. No staff data is saved or transmitted.</p></div></main></div>';
 }
 function renderLocked(){app.innerHTML='<div class="locked"><div class="mark">✦</div><h1>Staff access pending</h1><p>'+esc(state.error||'Your account is signed in but does not have an active HopeAid staff profile. Contact your administrator for approval.')+'</p>'+button('Sign out','logout','secondary')+'</div>'}
 function overview(){
@@ -89,6 +99,7 @@ function modalMarkup(){
  return '<div class="overlay" id="overlay"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modalhead"><div><span class="eyebrow">HOPEAID WORKSPACE</span><h2 id="modal-title">'+heading+'</h2></div><button class="xclose" type="button" data-action="close" aria-label="Close">×</button></div><form id="create-form" data-kind="'+kind+'"><div class="modalform">'+body+'</div><footer class="modalfoot">'+button('Cancel','close','secondary')+'<button type="submit" class="button" '+(busy?'disabled':'')+'>Save</button></footer></form></section></div>';
 }
 function render(){
+ if(state.authFlow==='set-password'){renderSetPassword();return}
  if(!state.demo&&!state.user){renderLogin();return}
  if(!state.profile){renderLocked();return}
  if(state.page==='team'&&!manager())state.page='overview';
@@ -117,8 +128,32 @@ async function loadData(uid){
  state.error='';render();
 }
 function startDemo(){state.demo=true;state.data=sample();state.profile=state.data.team[0];state.page='overview';state.filter='all';state.search='';state.error='';render();flash('Sample preview only — changes are not saved.')}
+
+async function sendPasswordReset(form){
+ if(!supabase)throw new Error('Staff authentication is not configured');
+ const email=String(form.get('email')||'').trim().toLowerCase();
+ const {error:e}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/'});
+ if(e)throw e;
+ state.error='';
+ state.notice='If this address belongs to an approved account, a reset link will be emailed. Follow that link to choose a new password.';
+ renderResetPassword();
+}
+async function savePassword(form){
+ if(!supabase||!state.user)throw new Error('Open a valid invitation or recovery link first.');
+ const password=String(form.get('password')||''),confirm=String(form.get('confirm')||'');
+ if(password.length<12)throw new Error('Choose a password of at least 12 characters.');
+ if(password!==confirm)throw new Error('The passwords do not match.');
+ const {error:e}=await supabase.auth.updateUser({password});
+ if(e)throw e;
+ state.authFlow='login';
+ state.error='';
+ state.notice='';
+ window.history.replaceState(null,'',window.location.pathname);
+ await loadData(state.user.id);
+ flash('Your password was set successfully.');
+}
 async function login(form){if(!supabase){state.error='Staff login is not active yet. A dedicated HopeAid authentication database is required.';renderLogin();return}busy=true;state.error='';renderLogin();try{const {data,error:e}=await supabase.auth.signInWithPassword({email:String(form.get('email')).trim(),password:String(form.get('password'))});if(e)throw e;state.user=data.user;await loadData(data.user.id)}catch(e){err(e)}finally{busy=false}}
-async function logout(){if(state.demo){state.demo=false;state.data=emptyData();state.profile=null;state.user=null;state.error='';state.page='overview';render();return}if(supabase){const {error:e}=await supabase.auth.signOut();if(e){err(e);return}}state.user=null;state.profile=null;state.data=emptyData();state.page='overview';state.error='';render()}
+async function logout(){state.authFlow='login';state.notice='';if(state.demo){state.demo=false;state.data=emptyData();state.profile=null;state.user=null;state.error='';state.page='overview';render();return}if(supabase){const {error:e}=await supabase.auth.signOut();if(e){err(e);return}}state.user=null;state.profile=null;state.data=emptyData();state.page='overview';state.error='';render()}
 async function write(kind,form){
  const get=n=>String(form.get(n)||'').trim();
  const payloads={
@@ -152,6 +187,8 @@ document.addEventListener('click',async e=>{
  if(action==='toggle-nav'){document.body.classList.toggle('nav-open');return}
  if(action==='close-nav'){document.body.classList.remove('nav-open');return}
  if(action==='demo'){startDemo();return}
+ if(action==='forgot-password'){state.authFlow='reset';state.notice='';state.error='';renderResetPassword();return}
+ if(action==='back-login'){state.authFlow='login';state.notice='';state.error='';renderLogin();return}
  if(action==='close'){state.modal=null;render();return}
  if(action==='logout'){await logout();return}
  if(action.startsWith('new-')){if(['new-task','new-programme','new-announcement'].includes(action)&&!manager())return;state.modal=action.slice(4);state.error='';render();return}
@@ -160,12 +197,12 @@ document.addEventListener('click',async e=>{
 document.addEventListener('click',e=>{const f=e.target.closest('[data-filter]');if(!f)return;state.filter=f.dataset.filter;render()});
 document.addEventListener('change',async e=>{const el=e.target.closest('[data-task]');if(!el||busy)return;busy=true;try{await taskStatus(el.dataset.task,el.value)}catch(ex){err(ex)}finally{busy=false}});
 document.addEventListener('submit',async e=>{
- if(!['login-form','create-form','search-form'].includes(e.target.id))return;e.preventDefault();
+ if(!['login-form','create-form','search-form','reset-form','password-setup-form'].includes(e.target.id))return;e.preventDefault();
  if(e.target.id==='search-form'){state.search=String(new FormData(e.target).get('query')||'');render();return}
  if(e.target.id==='login-form'&&!ready){state.error='Staff sign-in is not active yet. Please ask your administrator to connect the HopeAid authentication database.';renderLogin();return}
  if(busy)return;busy=true;
  const form=new FormData(e.target);
- try{if(e.target.id==='login-form')await login(form);else await write(e.target.dataset.kind,form)}
+ try{if(e.target.id==='login-form')await login(form);else if(e.target.id==='reset-form')await sendPasswordReset(form);else if(e.target.id==='password-setup-form')await savePassword(form);else await write(e.target.dataset.kind,form)}
  catch(ex){err(ex)}finally{busy=false;if(e.target.id==='login-form'&&!state.user&&!state.demo)renderLogin()}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal){state.modal=null;render()}});
@@ -174,10 +211,11 @@ async function init(){
  try{
  const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm');
  supabase=createClient(C.supabaseUrl,C.supabasePublishableKey);
+ supabase.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'&&session?.user){state.user=session.user;state.authFlow='set-password';renderSetPassword()}});
  const {data,error:e}=await supabase.auth.getUser();
  if(e&&e.name!=='AuthSessionMissingError')throw e;
  state.user=data?.user||null;
- if(state.user)await loadData(state.user.id);else renderLogin();
+ if(state.user&&(['invite','recovery'].includes(entryAuthType)||state.authFlow==='set-password')){state.authFlow='set-password';renderSetPassword()}else if(state.user)await loadData(state.user.id);else renderLogin();
  }catch(e){state.error='Unable to connect staff login: '+(e?.message||'unknown error');renderLogin()}
 }
 init();
