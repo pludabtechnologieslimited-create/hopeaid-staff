@@ -117,3 +117,6 @@
 .auth-box .auth-note{font-size:11px;margin-top:10px}
 .forgot-link{display:block;border:0;background:none;color:#137650;font-size:12px;font-weight:750;margin:13px 0 0 auto;padding:5px}
 .forgot-link:hover{text-decoration:underline}
+
+/* Super Admin's one-time password handoff */
+.one-time-code{display:block;user-select:all;overflow-wrap:anywhere;padding:13px 14px;border:1px solid #c5e6d6;border-radius:9px;background:#edf8f2;color:#143f32;font:700 14px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace}
