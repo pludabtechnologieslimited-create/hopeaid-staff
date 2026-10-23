@@ -1,27 +1,30 @@
-# HopeAid Staff database setup (project-specific)
+# HopeAid Staff — secure email-and-password accounts
 
-**Target only:** `ulikfxryicrsdpkpweve` — `https://ulikfxryicrsdpkpweve.supabase.co`.
-Do **not** run these scripts in PluPrep, PluTalk, or PluBuy. No database passwords or secret/service-role keys belong in GitHub.
+**Project:** `ulikfxryicrsdpkpweve` — https://ulikfxryicrsdpkpweve.supabase.co
 
-## Current status
+## Verified on 23 October 2026
 
-The dedicated HopeAid project exists, but the ChatGPT Supabase connector is still authenticated to a different organization. No migration has been applied to HopeAid by ChatGPT yet.
+- Six public staff tables and twelve row-level security policies are installed; RLS is enabled and anonymous table reading is blocked.
+- The website uses Supabase email/password authentication with a public publishable key. No OTP is required by the website sign-in form.
+- A server-side `create-staff` Edge Function (JWT-verified) is deployed to HopeAid's Supabase project. The function confirms the calling user's signed-in identity and their **active super_admin profile** server-side, creates staff accounts using Supabase Auth Admin API (`email_confirm: true`) and inserts the associated staff profile.
+- The **Staff Directory → Create staff account** form has been committed in `app.js`. It asks for full name, email, role, department, job title and a unique initial password of at least 12 characters. It does not send invitation emails or email verification codes.
+- The first Super Admin account **does not exist yet** in Supabase Auth and must be bootstrapped manually before this feature can be used. Live end-to-end login and staff creation remain **untested**.
 
-## Install using the Supabase SQL Editor
+## One-time bootstrap for Moses — no email code
 
-1. Open [the HopeAid SQL Editor](https://supabase.com/dashboard/project/ulikfxryicrsdpkpweve/sql/new). Check the project reference in your address bar **before executing SQL**.
-2. Open `supabase/schema.sql` from GitHub, copy its complete content, paste it into the SQL Editor, and choose **Run**. The schema creates exactly six public tables, role checks, role-restricted row-level-security (RLS) policies and the controlled attendance/task RPCs. The installation script is intended to run **once on a new project**.
-3. Open `supabase/verify_installation.sql`, copy and run the SQL. Check for `PASS: six RLS tables...` and verify that the results show six tables with `rls_enabled = true` and `anon_can_read = false`.
-4. Under **Authentication → Providers / Sign in**, disable public self-registration. Under **Authentication → URL Configuration**, set Site URL to `https://staff.hopeaid.ngo` and allow the same HTTPS origin as a redirect destination. Use approved email invitations.
-5. Under **Authentication → Users**, create an authorised user with email `moses@hopeaid.ngo` and a unique strong temporary password of at least 12 characters, shared privately with Moses. Alternatively, configure custom SMTP first and send an invitation, then let Moses establish a new password using the staff portal invitation screen. Supabase's default SMTP service only sends to pre-authorised project-team addresses, so inviting external staff by email without custom SMTP may fail. Do **not** give Moses project/organization admin permissions merely to get email delivery. Never use the literal default password `password`.
-6. After the Auth user exists, run `supabase/provision_moses_super_admin.sql` to assign the initial `super_admin` role. Confirm its verification query shows `is_active = true`.
-7. The **publishable** browser API key and project URL have already been configured in `config.js`. Never replace the publishable key with a `sb_secret_` or `service_role` key. Deploy the latest commit through Cloudflare so live login can reach Supabase.
-8. Deploy the latest GitHub commit through Cloudflare and test login on `https://staff.hopeaid.ngo` with the invited account. Then test supervisor vs staff authorization, attendance and task updates, and logout. For production, enable MFA policy, audit logging, backups, and scheduled access reviews.
+1. Sign into the [HopeAid Supabase Authentication Users page](https://supabase.com/dashboard/project/ulikfxryicrsdpkpweve/auth/users) using the project owner account.
+2. Select **Add user → Create new user** (not *Send invitation*).
+3. Set the email to **`moses@hopeaid.ngo`** and create a unique temporary password of **at least 12 characters**. Select **Auto Confirm User / Confirm Email** if the Dashboard offers that option. Do not send the password through public chat or email.
+4. Once the Auth user exists, run [`supabase/provision_moses_super_admin.sql`](./provision_moses_super_admin.sql) in the **HopeAid** SQL Editor (verify the project reference in the address bar), and confirm its final query shows `role = super_admin` and `is_active = true`.
+5. In Supabase **Authentication → Providers → Email**, you may disable *Confirm Email* for a code-free flow. However, **still create admin-managed users with `email_confirm: true`**, because admin-created accounts can otherwise remain unconfirmed even if that toggle is disabled. Disable public self-registration in the appropriate Auth settings; user provisioning should be admin-only.
+6. Log in as Moses at [staff.hopeaid.ngo](https://staff.hopeaid.ngo/), open **Staff Directory → Create staff account**, and create a test staff account. Check the new staff user can sign in using their email and temporary password **without an OTP**, and has only the permissions granted by their role.
+7. Ask staff to change their initial password after first sign-in and share temporary credentials through a secure private channel. Password reset emails remain a separate, optional recovery feature. Verify the correct deployment has reached Cloudflare.
 
-## What is NOT done yet
+## Deployment and security
 
-- Supabase migration **has not been executed** on the HopeAid project.
-- Auth user `moses@hopeaid.ngo` **has not been created or invited** by ChatGPT.
-- The frontend publishable key is **configured** in GitHub, but real staff login has not yet been tested with a registered staff account.
-
-To allow ChatGPT to finish directly, reconnect its Supabase plugin to the organization that owns `ulikfxryicrsdpkpweve`. Verify the plugin's project list contains the HopeAid project before applying migrations.
+- Only `super_admin` can call `create-staff`; the server independently checks the caller's JWT, role and active status.
+- The endpoint permits `staff`, `manager`, and `admin` roles, but **not** another `super_admin`.
+- Supabase `SUPABASE_SERVICE_ROLE_KEY` stays exclusively in the Edge Function runtime; **never** copy the secret/service-role key into browser JavaScript, `config.js`, or GitHub.
+- The Edge Function is tracked at `supabase/functions/create-staff/index.ts`.
+- Confirm that published `app.js` matches the latest GitHub commit. Test failed login, inactive staff, manager inability to create accounts, RLS, attendance, tasks and logout before production use.
+- Do not run any of these commands against PluPrep, PluTalk or PluBuy.
