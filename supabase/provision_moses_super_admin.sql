@@ -28,13 +28,13 @@ begin
     (v_user_id, 'moses@hopeaid.ngo', 'Moses', 'Super Administrator',
      'Administration', 'super_admin', true)
   on conflict (id) do update
-    set role = 'super_admin', is_active = true;
+    set role = 'super_admin', is_active = true, must_change_password = true;
 
   raise notice 'Super Admin profile provisioned for moses@hopeaid.ngo';
 end
 $provision$;
 
 -- Verify the role and identity after provisioning:
-select email, full_name, role, is_active
+select email, full_name, role, is_active, must_change_password
 from public.staff_profiles
 where lower(email) = 'moses@hopeaid.ngo';
