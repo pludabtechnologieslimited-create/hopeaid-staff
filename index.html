@@ -193,10 +193,11 @@ document.addEventListener('change',async e=>{const el=e.target.closest('[data-ta
 document.addEventListener('submit',async e=>{
  if(!['login-form','create-form','search-form'].includes(e.target.id))return;e.preventDefault();
  if(e.target.id==='search-form'){state.search=String(new FormData(e.target).get('query')||'');render();return}
+ if(e.target.id==='login-form'&&!ready){state.error='Staff sign-in is not active yet. Please ask your administrator to connect the HopeAid authentication database.';renderLogin();return}
  if(busy)return;busy=true;
  const form=new FormData(e.target);
  try{if(e.target.id==='login-form')await login(form);else await write(e.target.dataset.kind,form)}
- catch(ex){err(ex)}finally{busy=false}
+ catch(ex){err(ex)}finally{busy=false;if(e.target.id==='login-form'&&!state.user&&!state.demo)renderLogin()}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal){state.modal=null;render()}});
 async function init(){
