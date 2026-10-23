@@ -80,6 +80,11 @@ function modalMarkup(){
  if(kind==='staff'){heading='Create staff account';body=field('Full name','full_name',true,'text','Staff member name')+field('Work email','email',true,'email','staff@example.org')+'<div class="twofields">'+field('Job title','job_title',false,'text','Field Officer')+field('Department','department',false,'text','Programmes')+'</div>'+select('Access role','role',[["staff","Staff"],["manager","Manager"],["admin","Administrator"]])+'<div class="privacy">A unique strong temporary password will be generated automatically. No email code will be sent. The new staff member must change the temporary password before accessing the dashboard.</div>'}
  return '<div class="overlay" id="overlay"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modalhead"><div><span class="eyebrow">HOPEAID WORKSPACE</span><h2 id="modal-title">'+heading+'</h2></div><button class="xclose" type="button" data-action="close" aria-label="Close">×</button></div><form id="create-form" data-kind="'+kind+'"><div class="modalform">'+body+'</div><footer class="modalfoot">'+button('Cancel','close','secondary')+'<button type="submit" class="button" '+(busy?'disabled':'')+'>Save</button></footer></form></section></div>';
 }
+function setNavOpen(open){
+ document.body.classList.toggle('nav-open',Boolean(open));
+ const trigger=document.querySelector('.hamburger');
+ if(trigger){trigger.setAttribute('aria-expanded',String(Boolean(open)));trigger.setAttribute('aria-label',open?'Close navigation':'Open navigation')}
+}
 function render(){
  if(state.authFlow==='set-password'||state.authFlow==='first-login'){renderSetPassword();return}
  if(!state.user){renderLogin();return}
@@ -87,7 +92,7 @@ function render(){
  if(state.page==='team'&&!manager())state.page='overview';
  const pageContent={overview,tasks,programmes,attendance,reports,announcements,team,settings}[state.page]?.()||overview();
  const nav=navItems.slice(0,7).filter(x=>x[0]!=='team'||manager()).map(x=>'<button class="navlink '+(state.page===x[0]?'current':'')+'" data-page="'+x[0]+'"><span class="ico">'+x[1]+'</span>'+x[2]+(state.page===x[0]?'<span class="arrow">●</span>':'')+'</button>').join('');
- app.innerHTML='<div class="screen-shade" data-action="close-nav"></div><div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">✦</span><div><b>hopeaid<span>247</span></b><small>STAFF WORKSPACE</small></div><button class="sidebar-close" data-action="close-nav">×</button></div><div class="workspace"><span class="symbol">✦</span><div><b>Hope Aid Foundation</b><small>Internal workspace</small></div><span class="chev">⌄</span></div><div class="navlabel">WORKSPACE</div><nav class="navlist" aria-label="Staff navigation">'+nav+'</nav><div class="navlabel support-label">SUPPORT</div><nav class="navlist"><a class="navlink" href="https://hopeaid.ngo/safeguarding.html" target="_blank" rel="noopener noreferrer"><span class="ico">♧</span>Safeguarding policy ↗</a><button class="navlink '+(state.page==='settings'?'current':'')+'" data-page="settings"><span class="ico">⚙</span>My Profile</button></nav><div class="sidebar-bottom"><div class="support-card"><strong>✦ Making impact together</strong><p>Small actions. Lasting change.</p><a href="https://hopeaid.ngo" rel="noopener noreferrer" target="_blank">Visit foundation website ↗</a></div><div class="user-chip">'+avatar(state.profile.full_name)+'<div><b>'+esc(state.profile.full_name)+'</b><small>'+esc(state.profile.job_title||state.profile.department||'Staff member')+'</small></div></div></div></aside><div class="main"><header class="topbar"><div class="crumb"><button class="hamburger" data-action="toggle-nav" aria-label="Open menu">☰</button>Workspace &nbsp; › &nbsp; <b>'+esc(navItems.find(x=>x[0]===state.page)?.[2]||'Overview')+'</b></div><div class="top-actions">'+'<span class="date">◷ '+esc(fmt(dateToday()))+'</span><button class="topuser" data-page="settings">'+avatar(state.profile.full_name)+'<b>'+esc(fname())+'</b></button></div></header><main class="content"><div class="inner">'+alertBox()+pageContent+'<footer class="sitefoot"><span>© '+new Date().getFullYear()+' Hope Aid 247 Foundation</span><span>Built for the people behind the impact ✦</span></footer></div></main></div></div>'+modalMarkup();
+ app.innerHTML='<div class="screen-shade" data-action="close-nav" aria-hidden="true"></div><div class="shell"><aside class="sidebar" id="staff-sidebar" aria-label="Staff navigation"><div class="brand"><span class="mark">✦</span><div><b>hopeaid<span>247</span></b><small>STAFF WORKSPACE</small></div><button type="button" class="sidebar-close" data-action="close-nav" aria-label="Close navigation">×</button></div><div class="workspace"><span class="symbol">✦</span><div><b>Hope Aid Foundation</b><small>Internal workspace</small></div><span class="chev">⌄</span></div><div class="navlabel">WORKSPACE</div><nav class="navlist" aria-label="Staff navigation">'+nav+'</nav><div class="navlabel support-label">SUPPORT</div><nav class="navlist"><a class="navlink" href="https://hopeaid.ngo/safeguarding.html" target="_blank" rel="noopener noreferrer"><span class="ico">♧</span>Safeguarding policy ↗</a><button class="navlink '+(state.page==='settings'?'current':'')+'" data-page="settings"><span class="ico">⚙</span>My Profile</button><button type="button" class="navlink logout-link" data-action="logout"><span class="ico">↪</span>Sign out</button></nav><div class="sidebar-bottom"><div class="support-card"><strong>✦ Making impact together</strong><p>Small actions. Lasting change.</p><a href="https://hopeaid.ngo" rel="noopener noreferrer" target="_blank">Visit foundation website ↗</a></div><div class="user-chip">'+avatar(state.profile.full_name)+'<div><b>'+esc(state.profile.full_name)+'</b><small>'+esc(state.profile.job_title||state.profile.department||'Staff member')+'</small></div></div></div></aside><div class="main"><header class="topbar"><div class="crumb"><button type="button" class="hamburger" data-action="toggle-nav" aria-label="Open navigation" aria-expanded="false" aria-controls="staff-sidebar">☰</button>Workspace &nbsp; › &nbsp; <b>'+esc(navItems.find(x=>x[0]===state.page)?.[2]||'Overview')+'</b></div><div class="top-actions">'+'<span class="date">◷ '+esc(fmt(dateToday()))+'</span><button class="topuser" data-page="settings">'+avatar(state.profile.full_name)+'<b>'+esc(fname())+'</b></button><button type="button" class="logout-top" data-action="logout" aria-label="Sign out of HopeAid">↪ <span>Sign out</span></button></div></header><main class="content"><div class="inner">'+alertBox()+pageContent+'<footer class="sitefoot"><span>© '+new Date().getFullYear()+' Hope Aid 247 Foundation</span><span>Built for the people behind the impact ✦</span></footer></div></main></div></div>'+modalMarkup();
 }
 function flash(msg,error=false){state.toast=msg;document.querySelector('.toast')?.remove();const el=document.createElement('div');el.className='toast'+(error?' err':'');el.setAttribute('role','status');el.textContent=msg;const close=document.createElement('button');close.textContent='×';close.onclick=()=>el.remove();el.appendChild(close);document.body.appendChild(el)}
 function err(e){state.error=e?.message||String(e)||'Operation failed';render();flash(state.error,true)}
@@ -152,7 +157,24 @@ async function savePassword(form){
  flash('Your password was set successfully.');
 }
 async function login(form){if(!supabase){state.error='The secure login connection is still initializing. Please refresh if this persists.';renderLogin();return}busy=true;state.error='';renderLogin();try{const {data,error:e}=await supabase.auth.signInWithPassword({email:String(form.get('email')).trim(),password:String(form.get('password'))});if(e)throw e;state.user=data.user;await loadData(data.user.id)}catch(e){err(e)}finally{busy=false}}
-async function logout(){state.authFlow='login';state.notice='';state.createdStaffAccess=null;if(supabase){const {error:e}=await supabase.auth.signOut();if(e){err(e);return}}state.user=null;state.profile=null;state.data=emptyData();state.page='overview';state.error='';render()}
+async function logout(){
+ if(busy)return;
+ busy=true;
+ setNavOpen(false);
+ try{
+  if(supabase){
+   const {error:e}=await supabase.auth.signOut({scope:'local'});
+   if(e)throw e;
+  }
+  state.authFlow='login';state.notice='';state.createdStaffAccess=null;
+  state.user=null;state.profile=null;state.data=emptyData();
+  state.page='overview';state.search='';state.filter='all';state.modal=null;state.error='';
+  renderLogin();
+ }catch(e){
+  state.error='Could not securely sign out: '+(e?.message||'Please try again.');
+  render();flash(state.error,true);
+ }finally{busy=false}
+}
 async function write(kind,form){
  const get=n=>String(form.get(n)||'').trim();
  if(kind==='staff'){
@@ -197,11 +219,11 @@ async function clock(which){
  render();flash(which==='clock-in'?'Checked in successfully.':'Checked out successfully.');
 }
 document.addEventListener('click',async e=>{
- const page=e.target.closest('[data-page]');if(page){state.page=page.dataset.page;state.error='';document.body.classList.remove('nav-open');render();return}
+ const page=e.target.closest('[data-page]');if(page){state.page=page.dataset.page;state.error='';setNavOpen(false);render();return}
  const a=e.target.closest('[data-action]');if(!a)return;
  const action=a.dataset.action;
- if(action==='toggle-nav'){document.body.classList.toggle('nav-open');return}
- if(action==='close-nav'){document.body.classList.remove('nav-open');return}
+ if(action==='toggle-nav'){setNavOpen(!document.body.classList.contains('nav-open'));return}
+ if(action==='close-nav'){setNavOpen(false);document.querySelector('.hamburger')?.focus();return}
  if(action==='forgot-password'){state.authFlow='reset';state.notice='';state.error='';renderResetPassword();return}
  if(action==='back-login'){state.authFlow='login';state.notice='';state.error='';renderLogin();return}
  if(action==='copy-initial-password'&&state.createdStaffAccess){
@@ -223,7 +245,8 @@ document.addEventListener('submit',async e=>{
  try{if(e.target.id==='login-form')await login(form);else if(e.target.id==='reset-form')await sendPasswordReset(form);else if(e.target.id==='password-setup-form')await savePassword(form);else await write(e.target.dataset.kind,form)}
  catch(ex){err(ex)}finally{busy=false;if(e.target.id==='login-form'&&!state.user)renderLogin()}
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal){state.modal=null;render()}});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(state.modal){state.modal=null;render();return}if(document.body.classList.contains('nav-open')){setNavOpen(false);document.querySelector('.hamburger')?.focus()}});
+window.addEventListener('resize',()=>{if(window.innerWidth>940&&document.body.classList.contains('nav-open'))setNavOpen(false)});
 async function init(){
  // Show the login immediately rather than holding the splash screen while Auth initializes.
  renderLogin();
