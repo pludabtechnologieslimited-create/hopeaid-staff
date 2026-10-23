@@ -10,6 +10,8 @@ This is a dependency-free static app suitable for Cloudflare Pages. Connect this
 
 ## Configure secure staff access
 
+**HopeAid production project:** `ulikfxryicrsdpkpweve`. For the simplest one-time installation, open [the HopeAid SQL Editor](https://supabase.com/dashboard/project/ulikfxryicrsdpkpweve/sql/new), then paste and run [`supabase/INSTALL_ONCE.sql`](supabase/INSTALL_ONCE.sql). It contains both the schema and its security validation in one transaction. See [`supabase/SETUP.md`](supabase/SETUP.md) for all remaining Auth and deployment steps.
+
 1. Create a **dedicated HopeAid Supabase project** (do not use PluPrep, PluBuy or PluTalk's databases).
 2. Run `supabase/schema.sql` in its SQL Editor.
 3. Disable public sign-ups in Supabase Authentication settings, create approved staff accounts, then add staff records in `public.staff_profiles`. An authorised database administrator must explicitly assign staff, manager, admin or super_admin roles. Never derive roles from editable user metadata.
