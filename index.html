@@ -33,7 +33,7 @@
 const app=document.getElementById('app');
 const C=window.HOPEAID_CONFIG||{},ready=Boolean(C.supabaseUrl&&C.supabasePublishableKey);
 let supabase=null,busy=false;
-const state={demo:false,user:null,profile:null,page:'overview',data:emptyData(),modal:null,filter:'all',search:'',toast:'',error:'',authFlow:'login',notice:''};
+const state={demo:false,user:null,profile:null,page:'overview',data:emptyData(),modal:null,filter:'all',search:'',toast:'',error:'',authFlow:'login',notice:'',createdStaffAccess:null};
 const entryAuthType=(()=>{try{return new URLSearchParams(window.location.hash.slice(1)).get('type')||new URLSearchParams(window.location.search).get('type')||''}catch{return ''}})();
 function emptyData(){return{team:[],tasks:[],programmes:[],reports:[],attendance:[],announcements:[]}}
 const sample=()=>({
@@ -83,7 +83,8 @@ function renderResetPassword(){
  app.innerHTML='<main class="auth-setup"><section class="auth-box"><span class="auth-setup-logo" aria-hidden="true"></span><span class="eyebrow">HOPEAID STAFF ACCESS</span><h2>Reset your password</h2><p>Enter your approved staff email address to receive a password reset link.</p><form id="reset-form"><label for="reset-email">Work email address</label><input id="reset-email" name="email" type="email" autocomplete="email" placeholder="you@hopeaid.ngo" required>'+alertBox()+'<button class="button" type="submit" '+(busy?'disabled':'')+'>Send reset link</button></form>'+(state.notice?'<div class="setup-alert" role="status">'+esc(state.notice)+'</div>':'')+button('← Back to sign in','back-login','secondary')+'</section></main>';
 }
 function renderSetPassword(){
- app.innerHTML='<main class="auth-setup"><section class="auth-box"><span class="auth-setup-logo" aria-hidden="true"></span><span class="eyebrow">HOPEAID STAFF ACCESS</span><h2>Choose a secure password</h2><p>To finish your invitation or password reset, set a unique password with at least 12 characters.</p><form id="password-setup-form"><label for="new-password">New password</label><input id="new-password" name="password" type="password" autocomplete="new-password" minlength="12" required><label for="confirm-password">Confirm new password</label><input id="confirm-password" name="confirm" type="password" autocomplete="new-password" minlength="12" required>'+alertBox()+'<button class="button" type="submit" '+(busy?'disabled':'')+'>Save password securely</button></form><p class="auth-note">Passwords are processed by Supabase Auth; the HopeAid website does not store your password.</p>'+button('Sign out','logout','secondary')+'</section></main>';
+ const firstTime=state.authFlow==='first-login';
+ app.innerHTML='<main class="auth-setup"><section class="auth-box"><span class="auth-setup-logo" aria-hidden="true"></span><span class="eyebrow">HOPEAID STAFF ACCESS</span><h2>'+(firstTime?'Change your temporary password':'Choose a secure password')+'</h2><p>'+(firstTime?'Password change is required before you can enter the staff dashboard. Choose a unique password with at least 12 characters, upper- and lowercase letters and a number.':'To finish your invitation or password reset, set a unique password with at least 12 characters.')+'</p><form id="password-setup-form"><label for="new-password">New password</label><input id="new-password" name="password" type="password" autocomplete="new-password" minlength="12" required><label for="confirm-password">Confirm new password</label><input id="confirm-password" name="confirm" type="password" autocomplete="new-password" minlength="12" required>'+alertBox()+'<button class="button" type="submit" '+(busy?'disabled':'')+'>Save password securely</button></form><p class="auth-note">Passwords are processed by Supabase Auth; the HopeAid website does not store your password.</p>'+button('Sign out','logout','secondary')+'</section></main>';
 }
 function renderLogin(){
  if(state.authFlow==='reset'){renderResetPassword();return}
@@ -121,17 +122,22 @@ function field(label,name,required=false,type='text',placeholder=''){return '<la
 function select(label,name,opts){return '<label class="field"><span>'+esc(label)+'</span><select name="'+name+'">'+opts.map(o=>'<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>').join('')+'</select></label>'}
 function modalMarkup(){
  const kind=state.modal;if(!kind)return '';
+ if(kind==='staff-created'){
+  const c=state.createdStaffAccess;
+  if(!c)return '';
+  return '<div class="overlay"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modalhead"><div><span class="eyebrow">NEW STAFF ACCOUNT</span><h2 id="modal-title">Account created successfully</h2></div></div><div class="modalform"><div class="privacy">This temporary password is displayed only now. Copy it and share it privately. The new staff member must change it before accessing the dashboard.</div><div class="field"><span>Work email</span><strong>'+esc(c.email)+'</strong></div><div class="field"><span>One-time temporary password</span><code class="one-time-code">'+esc(c.password)+'</code></div></div><footer class="modalfoot">'+button('Copy password','copy-initial-password','secondary')+button('I have saved it — Close','close')+'</footer></section></div>';
+ }
  let body='',heading='';
  const programmes=[['','General / no programme'],...state.data.programmes.map(p=>[p.id,p.name])];
  if(kind==='task'){heading='Assign a task';body=field('Task title','title',true,'text','What needs to be done?')+field('Instructions','description',false,'textarea','Activity requirements')+select('Assigned staff','assigned_to',state.data.team.filter(p=>p.is_active).map(p=>[p.id,p.full_name]))+'<div class="twofields">'+select('Priority','priority',[['medium','Medium'],['low','Low'],['high','High']])+field('Due date','due_date',false,'date')+'</div>'+select('Programme','programme_id',programmes)}
  if(kind==='programme'){heading='Create programme';body=field('Programme name','name',true,'text','Programme name')+field('Description','description',false,'textarea','Objectives and activities')+field('Sector','sector',true,'text','e.g. Health & Nutrition')+field('Location','location',false,'text','e.g. Maiduguri, Borno')+'<div class="twofields">'+field('Start date','start_date',false,'date')+select('Status','status',[['planning','Planning'],['active','Active'],['on_hold','On hold'],['completed','Completed']])+'</div>'}
  if(kind==='report'){heading='Submit activity report';body=field('Report title','title',true,'text','Report title')+select('Related programme','programme_id',programmes)+field('Summary','summary',true,'textarea','Activities and outcomes, without personal data')+field('Challenges','challenges',false,'textarea','Logistical or operational challenges')+field('Next steps','next_steps',false,'textarea','What happens next?')+'<div class="privacy">Do not enter beneficiary names, confidential case information or safeguarding allegations.</div>'}
  if(kind==='announcement'){heading='Post announcement';body=field('Notice title','title',true,'text','Announcement title')+field('Message','body',true,'textarea','Write the message to staff')}
- if(kind==='staff'){heading='Create staff account';body=field('Full name','full_name',true,'text','Staff member name')+field('Work email','email',true,'email','staff@example.org')+'<div class="twofields">'+field('Job title','job_title',false,'text','Field Officer')+field('Department','department',false,'text','Programmes')+'</div>'+select('Access role','role',[["staff","Staff"],["manager","Manager"],["admin","Administrator"]])+'<label class="field"><span>Initial password (at least 12 characters)</span><input type="password" name="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><div class="privacy">No verification code or invitation email will be sent. Share the initial password privately and ask the staff member to change it after signing in. Only approved staff should receive access.</div>'}
+ if(kind==='staff'){heading='Create staff account';body=field('Full name','full_name',true,'text','Staff member name')+field('Work email','email',true,'email','staff@example.org')+'<div class="twofields">'+field('Job title','job_title',false,'text','Field Officer')+field('Department','department',false,'text','Programmes')+'</div>'+select('Access role','role',[["staff","Staff"],["manager","Manager"],["admin","Administrator"]])+'<div class="privacy">A unique strong temporary password will be generated automatically. No email code will be sent. The new staff member must change the temporary password before accessing the dashboard.</div>'}
  return '<div class="overlay" id="overlay"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modalhead"><div><span class="eyebrow">HOPEAID WORKSPACE</span><h2 id="modal-title">'+heading+'</h2></div><button class="xclose" type="button" data-action="close" aria-label="Close">×</button></div><form id="create-form" data-kind="'+kind+'"><div class="modalform">'+body+'</div><footer class="modalfoot">'+button('Cancel','close','secondary')+'<button type="submit" class="button" '+(busy?'disabled':'')+'>Save</button></footer></form></section></div>';
 }
 function render(){
- if(state.authFlow==='set-password'){renderSetPassword();return}
+ if(state.authFlow==='set-password'||state.authFlow==='first-login'){renderSetPassword();return}
  if(!state.demo&&!state.user){renderLogin();return}
  if(!state.profile){renderLocked();return}
  if(state.page==='team'&&!manager())state.page='overview';
@@ -146,6 +152,8 @@ async function loadData(uid){
  const {data:p,error:e}=await supabase.from('staff_profiles').select('*').eq('id',uid).maybeSingle();if(e)throw e;
  state.profile=p?.is_active?p:null;
  if(!state.profile){state.data=emptyData();render();return}
+ if(state.profile.must_change_password){state.data=emptyData();state.authFlow='first-login';renderSetPassword();return}
+ if(state.authFlow==='first-login')state.authFlow='login';
  const isMgr=manager();
  const results=await Promise.all([
  supabase.from('tasks').select('*').order('created_at',{ascending:false}).limit(200),
@@ -161,6 +169,17 @@ async function loadData(uid){
 }
 function startDemo(){state.demo=true;state.data=sample();state.profile=state.data.team[0];state.page='overview';state.filter='all';state.search='';state.error='';render();flash('Sample preview only — changes are not saved.')}
 
+function generateTemporaryPassword(){
+ const rng=window.crypto;
+ if(!rng?.getRandomValues)throw new Error('A secure browser is required for account creation.');
+ const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789-_!@#%';
+ const bytes=rng.getRandomValues(new Uint8Array(24));
+ return 'H7!a'+Array.from(bytes,n=>alphabet[n%alphabet.length]).join('');
+}
+async function functionError(e){
+ if(e?.context?.json){try{const detail=await e.context.json();if(detail?.error)return detail.error}catch{}}
+ return e?.message||'Operation failed';
+}
 async function sendPasswordReset(form){
  if(!supabase)throw new Error('Staff authentication is not configured');
  const email=String(form.get('email')||'').trim().toLowerCase();
@@ -173,10 +192,16 @@ async function sendPasswordReset(form){
 async function savePassword(form){
  if(!supabase||!state.user)throw new Error('Open a valid invitation or recovery link first.');
  const password=String(form.get('password')||''),confirm=String(form.get('confirm')||'');
- if(password.length<12)throw new Error('Choose a password of at least 12 characters.');
+ if(password.length<12||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/[0-9]/.test(password))throw new Error('Use at least 12 characters including uppercase, lowercase and a number.');
  if(password!==confirm)throw new Error('The passwords do not match.');
- const {error:e}=await supabase.auth.updateUser({password});
- if(e)throw e;
+ if(state.authFlow==='first-login'){
+  const {data,error:e}=await supabase.functions.invoke('complete-initial-password',{body:{new_password:password}});
+  if(e)throw new Error(await functionError(e));
+  if(!data?.ok)throw new Error(data?.error||'Password setup was not completed.');
+ }else{
+  const {error:e}=await supabase.auth.updateUser({password});
+  if(e)throw e;
+ }
  state.authFlow='login';
  state.error='';
  state.notice='';
@@ -185,13 +210,14 @@ async function savePassword(form){
  flash('Your password was set successfully.');
 }
 async function login(form){if(!supabase){state.error='The secure login connection is still initializing. Please refresh if this persists.';renderLogin();return}busy=true;state.error='';renderLogin();try{const {data,error:e}=await supabase.auth.signInWithPassword({email:String(form.get('email')).trim(),password:String(form.get('password'))});if(e)throw e;state.user=data.user;await loadData(data.user.id)}catch(e){err(e)}finally{busy=false}}
-async function logout(){state.authFlow='login';state.notice='';if(state.demo){state.demo=false;state.data=emptyData();state.profile=null;state.user=null;state.error='';state.page='overview';render();return}if(supabase){const {error:e}=await supabase.auth.signOut();if(e){err(e);return}}state.user=null;state.profile=null;state.data=emptyData();state.page='overview';state.error='';render()}
+async function logout(){state.authFlow='login';state.notice='';state.createdStaffAccess=null;if(state.demo){state.demo=false;state.data=emptyData();state.profile=null;state.user=null;state.error='';state.page='overview';render();return}if(supabase){const {error:e}=await supabase.auth.signOut();if(e){err(e);return}}state.user=null;state.profile=null;state.data=emptyData();state.page='overview';state.error='';render()}
 async function write(kind,form){
  const get=n=>String(form.get(n)||'').trim();
  if(kind==='staff'){
-  if(state.demo||state.profile?.role!=='super_admin'||!supabase)throw new Error('Only an active Super Admin can create staff accounts.');
+  if(state.demo||state.profile?.role!=='super_admin'||state.profile.must_change_password||!supabase)throw new Error('Only an active Super Admin can create staff accounts.');
+  const tempPassword=generateTemporaryPassword();
   const {data,error:e}=await supabase.functions.invoke('create-staff',{body:{
-   email:get('email'),password:String(form.get('password')||''),full_name:get('full_name'),
+   email:get('email'),password:tempPassword,full_name:get('full_name'),
    job_title:get('job_title'),department:get('department'),role:get('role')
   }});
   if(e){
@@ -200,8 +226,10 @@ async function write(kind,form){
    throw new Error(message);
   }
   if(!data?.ok)throw new Error(data?.error||'Staff creation was not confirmed.');
-  state.modal=null;await loadData(state.user.id);
-  render();flash('Staff account created. Share the initial password privately; no email verification required.');
+  await loadData(state.user.id);
+  state.createdStaffAccess={email:get('email'),password:tempPassword};
+  state.modal='staff-created';
+  render();flash('Account created. Copy the one-time password before closing.');
   return;
  }
 
@@ -238,9 +266,12 @@ document.addEventListener('click',async e=>{
  if(action==='demo'){startDemo();return}
  if(action==='forgot-password'){state.authFlow='reset';state.notice='';state.error='';renderResetPassword();return}
  if(action==='back-login'){state.authFlow='login';state.notice='';state.error='';renderLogin();return}
- if(action==='close'){state.modal=null;render();return}
+ if(action==='copy-initial-password'&&state.createdStaffAccess){
+  try{await navigator.clipboard.writeText(state.createdStaffAccess.password);flash('Temporary password copied. Share it securely.')}catch{flash('Copy failed. Please select the password manually.',true)}return;
+ }
+ if(action==='close'){state.createdStaffAccess=null;state.modal=null;render();return}
  if(action==='logout'){await logout();return}
- if(action.startsWith('new-')){if(action==='new-staff'&&(state.demo||state.profile?.role!=='super_admin'))return;if(['new-task','new-programme','new-announcement'].includes(action)&&!manager())return;state.modal=action.slice(4);state.error='';render();return}
+ if(action.startsWith('new-')){if(action==='new-staff'&&(state.demo||state.profile?.role!=='super_admin'||state.profile.must_change_password))return;if(['new-task','new-programme','new-announcement'].includes(action)&&!manager())return;state.modal=action.slice(4);state.error='';render();return}
  if(action==='clock-in'||action==='clock-out'){if(busy)return;busy=true;try{await clock(action)}catch(e){err(e)}finally{busy=false}}
 });
 document.addEventListener('click',e=>{const f=e.target.closest('[data-filter]');if(!f)return;state.filter=f.dataset.filter;render()});
