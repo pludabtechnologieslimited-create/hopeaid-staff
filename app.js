@@ -152,7 +152,7 @@ async function savePassword(form){
  await loadData(state.user.id);
  flash('Your password was set successfully.');
 }
-async function login(form){if(!supabase){state.error='Staff login is not active yet. A dedicated HopeAid authentication database is required.';renderLogin();return}busy=true;state.error='';renderLogin();try{const {data,error:e}=await supabase.auth.signInWithPassword({email:String(form.get('email')).trim(),password:String(form.get('password'))});if(e)throw e;state.user=data.user;await loadData(data.user.id)}catch(e){err(e)}finally{busy=false}}
+async function login(form){if(!supabase){state.error='The secure login connection is still initializing. Please refresh if this persists.';renderLogin();return}busy=true;state.error='';renderLogin();try{const {data,error:e}=await supabase.auth.signInWithPassword({email:String(form.get('email')).trim(),password:String(form.get('password'))});if(e)throw e;state.user=data.user;await loadData(data.user.id)}catch(e){err(e)}finally{busy=false}}
 async function logout(){state.authFlow='login';state.notice='';if(state.demo){state.demo=false;state.data=emptyData();state.profile=null;state.user=null;state.error='';state.page='overview';render();return}if(supabase){const {error:e}=await supabase.auth.signOut();if(e){err(e);return}}state.user=null;state.profile=null;state.data=emptyData();state.page='overview';state.error='';render()}
 async function write(kind,form){
  const get=n=>String(form.get(n)||'').trim();
@@ -207,7 +207,16 @@ document.addEventListener('submit',async e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal){state.modal=null;render()}});
 async function init(){
- if(!ready){renderLogin();return}
+ // Show the login immediately rather than holding the splash screen while Auth initializes.
+ renderLogin();
+ if(!ready)return;
+ let finished=false;
+ const watchdog=window.setTimeout(()=>{
+   if(!finished&&!state.user&&!state.demo){
+     state.error='The secure login connection is taking longer than expected. Check your network and refresh this page.';
+     renderLogin();
+   }
+ },12000);
  try{
  const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm');
  supabase=createClient(C.supabaseUrl,C.supabasePublishableKey);
@@ -217,5 +226,6 @@ async function init(){
  state.user=data?.user||null;
  if(state.user&&(['invite','recovery'].includes(entryAuthType)||state.authFlow==='set-password')){state.authFlow='set-password';renderSetPassword()}else if(state.user)await loadData(state.user.id);else renderLogin();
  }catch(e){state.error='Unable to connect staff login: '+(e?.message||'unknown error');renderLogin()}
+ finally{finished=true;window.clearTimeout(watchdog)}
 }
 init();
