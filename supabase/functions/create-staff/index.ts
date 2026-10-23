@@ -24,8 +24,8 @@ Deno.serve(async (req: Request) => {
     const { data: actor, error: authError } = await admin.auth.getUser(match[1]);
     if (authError || !actor.user) return respond(401, { error: "Your session is invalid or expired" });
     const { data: profile, error: profileError } = await admin.from("staff_profiles")
-      .select("role,is_active").eq("id", actor.user.id).maybeSingle();
-    if (profileError || !profile || !profile.is_active || profile.role !== "super_admin") {
+      .select("role,is_active,must_change_password").eq("id", actor.user.id).maybeSingle();
+    if (profileError || !profile || !profile.is_active || profile.must_change_password || profile.role !== "super_admin") {
       return respond(403, { error: "Only an active Super Admin can create staff accounts" });
     }
     const body = await req.json();
