@@ -194,7 +194,9 @@ revoke all on function public.clock_in() from public,anon;
 revoke all on function public.clock_out() from public,anon;
 grant execute on function public.set_task_status(uuid,text),public.clock_in(),public.clock_out() to authenticated;
 
-revoke all on public.staff_profiles,public.programmes,public.tasks,public.attendance,public.reports,public.announcements from anon;
+-- Supabase may have default authenticated table grants. Reset both roles first.
+-- RLS restricts rows; explicit SQL grants restrict operations.
+revoke all on public.staff_profiles,public.programmes,public.tasks,public.attendance,public.reports,public.announcements from anon,authenticated;
 grant select on public.staff_profiles,public.programmes,public.tasks,public.attendance,public.reports,public.announcements to authenticated;
 grant insert on public.programmes,public.tasks,public.reports,public.announcements to authenticated;
 grant update on public.programmes,public.tasks to authenticated;
