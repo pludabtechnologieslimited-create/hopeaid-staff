@@ -1,0 +1,34 @@
+name: Check HopeAid Staff Portal
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JavaScript
+        run: |
+          node --check app.js
+          node --check config.js
+      - name: Validate static files
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path("index.html").read_text()
+          js = Path("app.js").read_text()
+          css = Path("styles.css").read_text()
+          schema = Path("supabase/schema.sql").read_text()
+          assert 'id="app"' in html
+          assert '/app.js' in html and '/styles.css' in html and '/config.js' in html
+          assert 'signInWithPassword' in js and 'staff_profiles' in js
+          assert 'data-action="demo"' not in js or 'startDemo()' in js
+          assert '@media' in css
+          for table in ('staff_profiles','programmes','tasks','reports','attendance','announcements'):
+              assert 'alter table public.' + table + ' enable row level security' in schema
+          print("HopeAid portal structure and SQL RLS declarations checked")
+          PY
