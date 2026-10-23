@@ -40,6 +40,17 @@ begin
     end if;
   end loop;
 
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema='public' and table_name='staff_profiles'
+      and column_name='must_change_password' and column_default='true'
+  ) then raise exception 'Required first-login password-change flag is missing'; end if;
+
+  if position('not p.must_change_password' in pg_get_functiondef('private.is_active_staff()'::regprocedure))=0 or
+     position('not p.must_change_password' in pg_get_functiondef('private.is_manager()'::regprocedure))=0 then
+    raise exception 'Staff or manager access does not enforce mandatory password change';
+  end if;
+
   if has_table_privilege('authenticated','public.staff_profiles','INSERT') or
      has_table_privilege('authenticated','public.staff_profiles','UPDATE') or
      has_table_privilege('authenticated','public.staff_profiles','DELETE') then
