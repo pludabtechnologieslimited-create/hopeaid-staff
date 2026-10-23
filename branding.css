@@ -142,3 +142,62 @@
 }
 @media(max-width:710px){.topbar .top-actions{gap:8px}.logout-top{min-width:42px;min-height:42px;padding:8px!important;justify-content:center}.logout-top span{display:none}.topbar .crumb{display:flex;align-items:center;gap:5px;min-width:0;font-size:11px}.topbar .crumb b{max-width:106px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.topbar .topuser{padding:0!important}.topbar .top-actions{flex:none}}
 @media(prefers-reduced-motion:reduce){.sidebar{transition:none!important}}
+
+/* Mobile sidebar: a dedicated, independently scrolling menu region.
+   The fixed logo and close button stay accessible while short mobile
+   viewports can scroll down to all sections, including Sign out. */
+.sidebar{
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  height:100dvh;
+  max-height:100dvh;
+  min-height:0;
+}
+.sidebar > .brand{
+  flex:0 0 auto;
+}
+.sidebar-scroll{
+  flex:1 1 auto;
+  display:block;
+  min-height:0;
+  min-width:0;
+  overflow-x:hidden;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  touch-action:pan-y;
+  scrollbar-width:thin;
+  padding:0 0 max(20px,env(safe-area-inset-bottom));
+}
+.sidebar-scroll .workspace,
+.sidebar-scroll .navlist,
+.sidebar-scroll .sidebar-bottom{
+  flex:none;
+}
+.sidebar-scroll .sidebar-bottom{
+  margin-top:18px;
+}
+.sidebar-scroll:focus-visible{
+  outline:2px solid #91dab1;
+  outline-offset:-2px;
+}
+@media(max-width:940px){
+  .sidebar{
+    overflow:hidden;
+    height:100vh;
+    height:100dvh;
+    max-height:100dvh;
+  }
+  .sidebar-scroll{
+    overflow-y:auto !important;
+    height:auto;
+    max-height:none;
+    min-height:0;
+    touch-action:pan-y;
+  }
+  .sidebar-scroll .navlink{
+    min-height:44px;
+  }
+}
