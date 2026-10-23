@@ -28,8 +28,12 @@ The HopeAid site's palette informed this design: deep blue and green. This is no
 
 - Approved email: `moses@hopeaid.ngo`
 - Role: `super_admin` (highest portal role; inherits all management access)
-- **Not yet provisioned.** The dedicated HopeAid Supabase project and six-table schema are installed. Create the Auth user in Supabase Authentication → Users and then run the provisioning script.
+- **Not yet provisioned.** The dedicated HopeAid Supabase project and six-table schema are installed. Bootstrap Moses once from Supabase Authentication → Users using **Create new user** and **Auto Confirm User**, then grant him the portal role with the provisioning script.
 - Run `supabase/provision_moses_super_admin.sql` from that project's SQL Editor to grant the role. This requires an existing matching Auth user. The SQL is not executed by GitHub deployment.
 - Use an invitation/unique temporary password and require prompt password reset. Do **not** use `password` as a default password or put credentials in source control.
 
 **Email delivery:** Supabase's default SMTP service only supports pre-authorized addresses. To send email invitations/password resets to staff, configure custom SMTP. Until then, securely create approved users with a strong temporary password in the Auth dashboard. The website supports invited-user password setup and password recovery when email delivery is configured.
+
+## Direct staff account creation (no email verification code)
+
+After Moses is provisioned as `super_admin`, he signs in to the [HopeAid staff portal](https://staff.hopeaid.ngo), opens **Staff Directory → Create staff account**, and enters a full name, work email, job title, department, role and a strong initial password. The server-side Supabase Edge Function `create-staff` verifies the caller has an active `super_admin` staff profile, then creates the Auth account with email auto-confirmed and no verification code or invitation email. The password is **never stored in frontend source code**. Public registration stays disabled. Only approved staff should be provisioned; verify identities administratively. Password reset via email is optional and separately depends on SMTP configuration. See [`supabase/SETUP.md`](supabase/SETUP.md).
