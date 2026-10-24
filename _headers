@@ -4,4 +4,4 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-GnPmP0dABnw0z8M5BNj+DZLeY3u/9RfnGIrCv7Mxndo=' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: https://hopeaid.ngo; style-src 'self' 'sha256-ILGiY9jFYDRFuq6hzGUHxDvxLuhlIJiQJXt6LQQRHN0=' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-DpO1HxCRcZZt67b4DBl+FUUz4tbu9qFqIlQgcO6rkv8=' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: https://hopeaid.ngo; style-src 'self' 'sha256-ILGiY9jFYDRFuq6hzGUHxDvxLuhlIJiQJXt6LQQRHN0=' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
