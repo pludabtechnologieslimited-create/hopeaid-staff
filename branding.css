@@ -201,3 +201,10 @@
     min-height:44px;
   }
 }
+
+/* PLUDAB Technologies attribution */
+.pludab-credit{font-weight:600;letter-spacing:.01em}
+.pludab-credit a{color:#168857;text-decoration:none;font-weight:800}
+.pludab-credit a:hover,.pludab-credit a:focus-visible{text-decoration:underline}
+.signin-credit{font-size:11px;color:#788d9d;margin-top:26px!important;text-align:center}
+.sitefoot .pludab-credit{color:#66839a}
