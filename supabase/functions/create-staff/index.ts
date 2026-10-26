@@ -36,7 +36,7 @@ Deno.serve(async (req: Request) => {
     const job_title = String(body?.job_title || "").trim();
     const role = String(body?.role || "staff");
     if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return respond(400, { error: "Enter a valid email address" });
-    if (password.length < 12 || password.length > 128) return respond(400, { error: "Initial password must be between 12 and 128 characters" });
+    if (password.length < 8 || password.length > 128) return respond(400, { error: "Initial password must be between 8 and 128 characters" });
     if (full_name.length < 2 || full_name.length > 120 || department.length > 120 || job_title.length > 120) {
       return respond(400, { error: "Check the staff name, title and department lengths" });
     }
