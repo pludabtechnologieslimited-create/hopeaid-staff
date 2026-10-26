@@ -208,3 +208,22 @@
 .pludab-credit a:hover,.pludab-credit a:focus-visible{text-decoration:underline}
 .signin-credit{font-size:11px;color:#788d9d;margin-top:26px!important;text-align:center}
 .sitefoot .pludab-credit{color:#66839a}
+
+
+/* Visible, accessible password toggle for staff sign-in and password setup. */
+.password-entry{position:relative;display:block;width:100%;min-width:0}
+.sign-card .password-entry{margin-bottom:10px}
+.sign-card .password-entry input,
+.auth-box .password-entry input{display:block;width:100%;padding-right:56px}
+.sign-card .password-entry input{margin-bottom:0}
+.password-entry .password-eye{
+ appearance:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);
+ width:44px;height:44px;min-height:44px;display:grid;place-items:center;
+ padding:0;border:0;border-radius:8px;background:transparent;color:#526a7b;
+ cursor:pointer;z-index:1;
+}
+.password-entry .password-eye:hover{color:#167a57;background:#edf8f3}
+.password-entry .password-eye:focus-visible{outline:3px solid #279e73;outline-offset:1px}
+.password-entry .password-eye svg{height:21px;width:21px;pointer-events:none}
+.password-entry .password-eye[aria-pressed="false"] .eye-closed,
+.password-entry .password-eye[aria-pressed="true"] .eye-open{display:none}
