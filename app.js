@@ -21,6 +21,10 @@ function panelhead(t,d,to){return '<header class="panelhead"><div><h3>'+esc(t)+'
 function pname(id){return state.data.programmes.find(p=>p.id===id)?.name||'General'}
 function staffname(id){return state.data.team.find(p=>p.id===id)?.full_name||'Staff member'}
 function alertBox(){return state.error?'<div class="errorbar" role="alert">'+esc(state.error)+'</div>':''}
+function passwordInput(id,name,autocomplete,placeholder='',minlength=''){
+ const description=id==='new-password'?'new password':id==='confirm-password'?'confirmation password':'password';
+ return '<span class="password-entry"><input id="'+id+'" name="'+name+'" type="password" autocomplete="'+autocomplete+'"'+(placeholder?' placeholder="'+placeholder+'"':'')+(minlength?' minlength="'+minlength+'"':'')+' required><button type="button" class="password-eye" data-password-toggle="'+id+'" aria-controls="'+id+'" aria-pressed="false" aria-label="Show '+description+'" title="Show '+description+'"><svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.7-6.5 10-6.5S22 12 22 12s-3.7 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg><svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4 20 20"/><path d="M10.5 5.7A11.3 11.3 0 0 1 12 5.5c6.3 0 10 6.5 10 6.5a15.4 15.4 0 0 1-3.1 3.7M6.1 8.3A15.2 15.2 0 0 0 2 12s3.7 6.5 10 6.5c1.2 0 2.3-.2 3.3-.6"/></svg></button></span>';
+}
 const navItems=[['overview','◫','Overview'],['tasks','☑','My Tasks'],['programmes','▣','Programmes'],['attendance','◷','Attendance'],['reports','▤','Reports'],['announcements','◉','Announcements'],['team','♙','Staff Directory'],['settings','⚙','My Profile']];
 
 function renderResetPassword(){
@@ -28,12 +32,12 @@ function renderResetPassword(){
 }
 function renderSetPassword(){
  const firstTime=state.authFlow==='first-login';
- app.innerHTML='<main class="auth-setup"><section class="auth-box"><span class="auth-setup-logo" aria-hidden="true"></span><span class="eyebrow">HOPEAID STAFF ACCESS</span><h2>'+(firstTime?'Change your temporary password':'Choose a secure password')+'</h2><p>'+(firstTime?'Password change is required before you can enter the staff dashboard. Choose a unique password with at least 12 characters, upper- and lowercase letters and a number.':'To finish your invitation or password reset, set a unique password with at least 12 characters.')+'</p><form id="password-setup-form"><label for="new-password">New password</label><input id="new-password" name="password" type="password" autocomplete="new-password" minlength="12" required><label for="confirm-password">Confirm new password</label><input id="confirm-password" name="confirm" type="password" autocomplete="new-password" minlength="12" required>'+alertBox()+'<button class="button" type="submit" '+(busy?'disabled':'')+'>Save password securely</button></form><p class="auth-note">Passwords are processed by Supabase Auth; the HopeAid website does not store your password.</p>'+button('Sign out','logout','secondary')+'</section></main>';
+ app.innerHTML='<main class="auth-setup"><section class="auth-box"><span class="auth-setup-logo" aria-hidden="true"></span><span class="eyebrow">HOPEAID STAFF ACCESS</span><h2>'+(firstTime?'Change your temporary password':'Choose a secure password')+'</h2><p>'+(firstTime?'Password change is required before you can enter the staff dashboard. Choose a unique password with at least 12 characters, upper- and lowercase letters and a number.':'To finish your invitation or password reset, set a unique password with at least 12 characters.')+'</p><form id="password-setup-form"><label for="new-password">New password</label>'+passwordInput('new-password','password','new-password','','12')+'<label for="confirm-password">Confirm new password</label>'+passwordInput('confirm-password','confirm','new-password','','12')+''+alertBox()+'<button class="button" type="submit" '+(busy?'disabled':'')+'>Save password securely</button></form><p class="auth-note">Passwords are processed by Supabase Auth; the HopeAid website does not store your password.</p>'+button('Sign out','logout','secondary')+'</section></main>';
 }
 function renderLogin(){
  if(state.authFlow==='reset'){renderResetPassword();return}
  if(state.authFlow==='set-password'){renderSetPassword();return}
- app.innerHTML='<div class="signin"><aside class="sign-art"><div class="brand"><span class="mark">✦</span><div><b>hopeaid<span>247</span></b><small>STAFF WORKSPACE</small></div></div><section class="signmessage"><span class="eyebrow">✦ OUR PEOPLE, OUR IMPACT</span><h1>Good work starts<br>with <em>people.</em></h1><p>One organised space to collaborate, stay accountable and strengthen every community we serve.</p></section><small>Empowering Communities. Restoring Hope.</small></aside><main class="sign-panel"><div class="sign-card"><span class="eyebrow">STAFF WORKSPACE</span><h2>Welcome back<span style="color:#16995f">.</span></h2><p>Sign in with your approved HopeAid staff account.</p><form id="login-form"><label for="email">Work email address</label><input id="email" name="email" type="email" autocomplete="username" placeholder="you@hopeaid.ngo" required ><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required >'+alertBox()+'<button type="submit" class="button" '+(busy?'disabled':'')+'>Sign in securely →</button></form>'+(!ready?'<div class="setup-alert" role="status">🔒 Login activation pending: Staff authentication is not yet connected. You can type into these fields, but the account cannot sign in until the database is activated. Do not enter a real or reused password yet.</div>':'')+'<p class="pludab-credit signin-credit">Made by <a href="https://pludab.com/" target="_blank" rel="noopener noreferrer">PLUDAB Technologies</a></p></div></main></div>';
+ app.innerHTML='<div class="signin"><aside class="sign-art"><div class="brand"><span class="mark">✦</span><div><b>hopeaid<span>247</span></b><small>STAFF WORKSPACE</small></div></div><section class="signmessage"><span class="eyebrow">✦ OUR PEOPLE, OUR IMPACT</span><h1>Good work starts<br>with <em>people.</em></h1><p>One organised space to collaborate, stay accountable and strengthen every community we serve.</p></section><small>Empowering Communities. Restoring Hope.</small></aside><main class="sign-panel"><div class="sign-card"><span class="eyebrow">STAFF WORKSPACE</span><h2>Welcome back<span style="color:#16995f">.</span></h2><p>Sign in with your approved HopeAid staff account.</p><form id="login-form"><label for="email">Work email address</label><input id="email" name="email" type="email" autocomplete="username" placeholder="you@hopeaid.ngo" required ><label for="password">Password</label>'+passwordInput('password','password','current-password','Enter your password')+''+alertBox()+'<button type="submit" class="button" '+(busy?'disabled':'')+'>Sign in securely →</button></form>'+(!ready?'<div class="setup-alert" role="status">🔒 Login activation pending: Staff authentication is not yet connected. You can type into these fields, but the account cannot sign in until the database is activated. Do not enter a real or reused password yet.</div>':'')+'<p class="pludab-credit signin-credit">Made by <a href="https://pludab.com/" target="_blank" rel="noopener noreferrer">PLUDAB Technologies</a></p></div></main></div>';
 }
 function renderLocked(){app.innerHTML='<div class="locked"><div class="mark">✦</div><h1>Staff access pending</h1><p>'+esc(state.error||'Your account is signed in but does not have an active HopeAid staff profile. Contact your administrator for approval.')+'</p>'+button('Sign out','logout','secondary')+'</div>'}
 function overview(){
@@ -219,6 +223,21 @@ async function clock(which){
  render();flash(which==='clock-in'?'Checked in successfully.':'Checked out successfully.');
 }
 document.addEventListener('click',async e=>{
+ const visibility=e.target.closest('[data-password-toggle]');
+ if(visibility){
+  const input=document.getElementById(visibility.dataset.passwordToggle);
+  if(input){
+   const show=input.type==='password';
+   input.type=show?'text':'password';
+   visibility.setAttribute('aria-pressed',String(show));
+   const description=input.id==='new-password'?'new password':input.id==='confirm-password'?'confirmation password':'password';
+   const label=(show?'Hide ':'Show ')+description;
+   visibility.setAttribute('aria-label',label);
+   visibility.title=label;
+   input.focus({preventScroll:true});
+  }
+  return;
+ }
  const page=e.target.closest('[data-page]');if(page){state.page=page.dataset.page;state.error='';setNavOpen(false);render();return}
  const a=e.target.closest('[data-action]');if(!a)return;
  const action=a.dataset.action;
