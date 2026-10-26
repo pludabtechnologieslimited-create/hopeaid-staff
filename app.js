@@ -32,7 +32,7 @@ function renderResetPassword(){
 }
 function renderSetPassword(){
  const firstTime=state.authFlow==='first-login';
- app.innerHTML='<main class="auth-setup"><section class="auth-box"><span class="auth-setup-logo" aria-hidden="true"></span><span class="eyebrow">HOPEAID STAFF ACCESS</span><h2>'+(firstTime?'Change your temporary password':'Choose a secure password')+'</h2><p>'+(firstTime?'Password change is required before you can enter the staff dashboard. Choose a unique password with at least 12 characters, upper- and lowercase letters and a number.':'To finish your invitation or password reset, set a unique password with at least 12 characters.')+'</p><form id="password-setup-form"><label for="new-password">New password</label>'+passwordInput('new-password','password','new-password','','12')+'<label for="confirm-password">Confirm new password</label>'+passwordInput('confirm-password','confirm','new-password','','12')+''+alertBox()+'<button class="button" type="submit" '+(busy?'disabled':'')+'>Save password securely</button></form><p class="auth-note">Passwords are processed by Supabase Auth; the HopeAid website does not store your password.</p>'+button('Sign out','logout','secondary')+'</section></main>';
+ app.innerHTML='<main class="auth-setup"><section class="auth-box"><span class="auth-setup-logo" aria-hidden="true"></span><span class="eyebrow">HOPEAID STAFF ACCESS</span><h2>'+(firstTime?'Change your temporary password':'Choose a secure password')+'</h2><p>'+(firstTime?'Password change is required before you can enter the staff dashboard. Choose a unique password with at least 8 characters, upper- and lowercase letters and a number.':'To finish your invitation or password reset, set a unique password with at least 8 characters.')+'</p><form id="password-setup-form"><label for="new-password">New password</label>'+passwordInput('new-password','password','new-password','','8')+'<label for="confirm-password">Confirm new password</label>'+passwordInput('confirm-password','confirm','new-password','','8')+''+alertBox()+'<button class="button" type="submit" '+(busy?'disabled':'')+'>Save password securely</button></form><p class="auth-note">Passwords are processed by Supabase Auth; the HopeAid website does not store your password.</p>'+button('Sign out','logout','secondary')+'</section></main>';
 }
 function renderLogin(){
  if(state.authFlow==='reset'){renderResetPassword();return}
@@ -143,7 +143,7 @@ async function sendPasswordReset(form){
 async function savePassword(form){
  if(!supabase||!state.user)throw new Error('Open a valid invitation or recovery link first.');
  const password=String(form.get('password')||''),confirm=String(form.get('confirm')||'');
- if(password.length<12||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/[0-9]/.test(password))throw new Error('Use at least 12 characters including uppercase, lowercase and a number.');
+ if(password.length<8||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/[0-9]/.test(password))throw new Error('Use at least 8 characters including uppercase, lowercase and a number.');
  if(password!==confirm)throw new Error('The passwords do not match.');
  if(state.authFlow==='first-login'){
   const {data,error:e}=await supabase.functions.invoke('complete-initial-password',{body:{new_password:password}});
