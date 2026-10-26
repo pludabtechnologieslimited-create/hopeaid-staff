@@ -26,8 +26,8 @@ Deno.serve(async (req: Request) => {
      return respond(403,{error:"Password change is not required for this account"});
    const body=await req.json();
    const next=String(body?.new_password||"");
-   if(next.length<12||next.length>128||!/[a-z]/.test(next)||!/[A-Z]/.test(next)||!/[0-9]/.test(next))
-     return respond(400,{error:"Use 12+ characters including upper/lowercase letters and a number"});
+   if(next.length<8||next.length>128||!/[a-z]/.test(next)||!/[A-Z]/.test(next)||!/[0-9]/.test(next))
+     return respond(400,{error:"Use 8+ characters including upper/lowercase letters and a number"});
    const {error:passwordError}=await admin.auth.admin.updateUserById(auth.user.id,{password:next});
    if(passwordError) return respond(400,{error:passwordError.message});
    const {error:saveError}=await admin.from("staff_profiles")
