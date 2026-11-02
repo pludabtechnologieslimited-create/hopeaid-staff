@@ -6,7 +6,7 @@
 
 - Six public staff tables and twelve row-level security policies are installed; RLS is enabled and anonymous table reading is blocked.
 - The website uses Supabase email/password authentication with a public publishable key. No OTP is required by the website sign-in form.
-- A server-side `create-staff` Edge Function (JWT-verified) is deployed to HopeAid's Supabase project. The function confirms the calling user's signed-in identity and their **active super_admin profile** server-side, creates staff accounts using Supabase Auth Admin API (`email_confirm: true`) and inserts the associated staff profile.
+- A server-side `create-staff` Edge Function (JWT-verified) is deployed to HopeAid's Supabase project. The function confirms the calling user's signed-in identity and either an **active super_admin profile** or the specific active, email-confirmed `ed@hopeaid.ngo` Executive Director account (manager role), creates staff accounts using Supabase Auth Admin API (`email_confirm: true`) and inserts the associated staff profile.
 - The **Staff Directory → Create staff account** form automatically generates a unique strong 28-character temporary password for each newly approved account. The Super Admin sees the password once to share privately. No invitation email or email OTP is needed.
 - Every new staff profile has `must_change_password = true`. Database RLS and manager privileges deny staff-record access until the password is replaced through the authenticated `complete-initial-password` Edge Function. The first Super Admin account **does not exist yet** and must be bootstrapped manually. Live end-to-end sign-in remains **untested**.
 
@@ -22,7 +22,7 @@
 
 ## Deployment and security
 
-- Only a `super_admin` with a completed password rotation can call `create-staff`; the server independently checks JWT, role, active status, and `must_change_password = false`.
+- Only an active `super_admin` or the specifically authorised Executive Director (`ed@hopeaid.ngo`, bound to an existing Auth user ID, manager role, confirmed email) with completed password rotation can call `create-staff`; server verifies the caller's JWT, profile and role. The ED may provision `staff` accounts only; only Super Admin may assign `manager` or `admin` roles.
 - The endpoint permits `staff`, `manager`, and `admin` roles, but **not** another `super_admin`.
 - Supabase `SUPABASE_SERVICE_ROLE_KEY` stays exclusively in the Edge Function runtime; **never** copy the secret/service-role key into browser JavaScript, `config.js`, or GitHub.
 - Edge Functions are versioned in `supabase/functions/create-staff/index.ts` and `supabase/functions/complete-initial-password/index.ts`.
