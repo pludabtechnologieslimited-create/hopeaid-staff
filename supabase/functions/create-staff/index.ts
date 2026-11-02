@@ -24,9 +24,17 @@ Deno.serve(async (req: Request) => {
     const { data: actor, error: authError } = await admin.auth.getUser(match[1]);
     if (authError || !actor.user) return respond(401, { error: "Your session is invalid or expired" });
     const { data: profile, error: profileError } = await admin.from("staff_profiles")
-      .select("role,is_active,must_change_password").eq("id", actor.user.id).maybeSingle();
-    if (profileError || !profile || !profile.is_active || profile.must_change_password || profile.role !== "super_admin") {
-      return respond(403, { error: "Only an active Super Admin can create staff accounts" });
+      .select("role,email,is_active,must_change_password").eq("id", actor.user.id).maybeSingle();
+    // Grant staff onboarding only to the established ED Auth identity; never trust
+    // a caller-supplied email/role or editable user_metadata for authorization.
+    const executiveDirector = actor.user.id === "2e7572c3-91e0-4eab-8561-34182807d2f8" &&
+      actor.user.email?.trim().toLowerCase() === "ed@hopeaid.ngo" &&
+      actor.user.email_confirmed_at != null &&
+      profile?.email?.trim().toLowerCase() === "ed@hopeaid.ngo" &&
+      profile?.role === "manager";
+    const superAdmin = profile?.role === "super_admin";
+    if (profileError || !profile || !profile.is_active || profile.must_change_password || !(superAdmin || executiveDirector)) {
+      return respond(403, { error: "Only authorised staff administrators can create staff accounts" });
     }
     const body = await req.json();
     const email = String(body?.email || "").trim().toLowerCase();
@@ -41,6 +49,9 @@ Deno.serve(async (req: Request) => {
       return respond(400, { error: "Check the staff name, title and department lengths" });
     }
     if (!["staff", "manager", "admin"].includes(role)) return respond(400, { error: "Invalid staff role" });
+    // The ED can provision ordinary staff, not create managers or administrators.
+    if (executiveDirector && !superAdmin && role !== "staff")
+      return respond(403, { error: "Executive Director may create staff accounts only" });
     const created = await admin.auth.admin.createUser({
       email, password, email_confirm: true
     });
